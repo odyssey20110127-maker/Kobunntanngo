@@ -1,0 +1,2 @@
+# Kobunntanngo
+Zibunnyoudesu Kinisinaidekudasai
