@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>古文単語試験対策</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;500;600;700;800&family=Zen+Old+Mincho:wght@400;600;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f2ead9;
+    --paper-deep:#e9dfc7;
+    --ink:#454138;
+    --ink-soft:#4a4235;
+    --shu:#a3392a;
+    --shu-deep:#7f2a1f;
+    --ai:#33506e;
+    --gold:#a3803f;
+    --line:#c9b98f;
+    --card:#faf5e8;
+    --night:#1c1712;
+    --night-card:#241f18;
+    --vh:1vh;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0; height:100%; overscroll-behavior:none;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Shippori Mincho','Zen Old Mincho',serif;
+    line-height:1.9;
+    overflow:hidden;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    opacity:0.5;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(74,66,53,0.025) 0px, rgba(74,66,53,0.025) 1px, transparent 1px, transparent 3px);
+    mix-blend-mode:multiply;
+    z-index:0;
+  }
+  button{font-family:inherit;}
+
+  #app{ position:relative; width:100%; height:calc(var(--vh, 1vh) * 100); overflow:hidden; overflow:clip; }
+
+  .screen{
+    position:absolute; inset:0;
+    height:calc(var(--vh, 1vh) * 100);
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(14px) scale(.99);
+    transition:opacity .55s cubic-bezier(.2,.7,.3,1), transform .55s cubic-bezier(.2,.7,.3,1);
+    z-index:1;
+  }
+  .screen.active{
+    opacity:1;
+    pointer-events:auto;
+    transform:translateY(0) scale(1);
+    z-index:2;
+  }
+
+  /* ============ TITLE SCREEN ============ */
+  #screen-title{
+    display:flex; align-items:center; justify-content:center;
+    background:
+      radial-gradient(ellipse at 50% 30%, rgba(163,57,42,0.07), transparent 60%),
+      var(--paper);
+    cursor:pointer;
+  }
+  .title-stage{
+    text-align:center;
+    position:relative;
+  }
+  .title-frame{
+    border:1.5px solid var(--gold);
+    padding:clamp(20px,4vh,46px) clamp(18px,4vw,34px);
+    position:relative;
+    display:inline-block;
+  }
+  .title-frame::before, .title-frame::after{
+    content:"";
+    position:absolute;
+    width:14px; height:14px;
+    border:2px solid var(--shu);
+  }
+  .title-frame::before{ top:-8px; left:-8px; border-right:none; border-bottom:none; }
+  .title-frame::after{ bottom:-8px; right:-8px; border-left:none; border-top:none; }
+  .title-vertical{
+    display:flex;
+    flex-direction:row-reverse;
+    align-items:flex-start;
+    gap:clamp(0.4em, 3vw, 0.9em);
+    margin:0;
+  }
+  .title-col{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:clamp(0.12em, 1.1vh, 0.28em);
+  }
+  .title-vertical .ch{
+    display:block;
+    font-family:'Shippori Mincho', serif;
+    font-weight:800;
+    font-size:clamp(1.5rem, 6.5vh, 2.7rem);
+    line-height:1;
+    color:var(--ink);
+    opacity:0;
+    filter:blur(4px);
+    animation:chIn .6s ease forwards;
+  }
+  @keyframes chIn{
+    to{ opacity:1; filter:blur(0); }
+  }
+  .tap-hint{
+    margin:clamp(14px,3vh,26px) 0 0;
+    font-size:0.78rem;
+    letter-spacing:0.4em;
+    color:var(--ink-soft);
+    opacity:0;
+    animation:hintIn 1s ease forwards 1.9s, blinkHint 2s ease-in-out infinite 2.9s;
+  }
+  @keyframes hintIn{ to{ opacity:0.85; } }
+  @keyframes blinkHint{ 0%,100%{opacity:0.85;} 50%{opacity:0.25;} }
+
+  /* ============ ROUND SELECT SCREEN ============ */
+  #screen-rounds{
+    background:var(--paper);
+    display:flex; flex-direction:column;
+    padding:0 22px;
+  }
+  .rounds-header{
+    display:flex; align-items:center; gap:14px;
+    padding:22px 2px 18px;
+    border-bottom:2px double var(--gold);
+    flex-shrink:0;
+  }
+  .rounds-header h2{
+    font-size:1.15rem;
+    letter-spacing:0.18em;
+    margin:0;
+    color:var(--ink);
+    font-weight:600;
+  }
+  .nav-back{
+    background:none; border:1px solid var(--ink-soft);
+    color:var(--ink-soft);
+    width:36px; height:36px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1rem;
+    cursor:pointer;
+    transition:transform .15s, border-color .15s, color .15s, background .15s;
+    flex-shrink:0;
+  }
+  .nav-back:hover{ border-color:var(--shu); color:var(--shu-deep); }
+  .nav-back:active{ transform:scale(.9); }
+
+  .round-scroll{ flex:1; overflow-y:auto; padding:26px 2px 40px; }
+  .round-grid{
+    display:grid;
+    grid-template-columns:repeat(6, 1fr);
+    gap:14px;
+  }
+  .round-btn{
+    background:var(--card);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    padding:clamp(12px,2.6vh,20px) 4px clamp(10px,2vh,16px);
+    font-size:0.86rem;
+    cursor:pointer;
+    text-align:center;
+    letter-spacing:0.02em;
+    position:relative;
+    overflow:hidden;
+    opacity:0;
+    transform:translateY(10px);
+    animation:riseCard .45s ease forwards;
+    transition:border-color .18s, transform .18s, box-shadow .18s;
+  }
+  @keyframes riseCard{ to{ opacity:1; transform:translateY(0); } }
+  .round-btn:hover{ border-color:var(--shu); transform:translateY(-3px); box-shadow:0 8px 18px -10px rgba(36,32,25,.4); }
+  .round-btn:active{ transform:translateY(0) scale(.95); }
+  .round-btn .n{
+    display:block;
+    font-family:'Shippori Mincho',serif;
+    font-weight:800;
+    font-size:1.25rem;
+    letter-spacing:0.02em;
+    white-space:nowrap;
+    color:var(--shu);
+    margin-bottom:4px;
+  }
+  .round-btn .cnt{
+    display:block;
+    font-size:0.68rem;
+    white-space:nowrap;
+    color:var(--ink-soft);
+    opacity:.75;
+  }
+  .ripple{
+    position:absolute; border-radius:50%;
+    background:rgba(163,57,42,0.25);
+    transform:scale(0);
+    animation:rippleAnim .55s ease-out forwards;
+    pointer-events:none;
+  }
+  @keyframes rippleAnim{ to{ transform:scale(3.4); opacity:0; } }
+
+  @media (max-height:820px){
+    .rounds-header{ padding:14px 2px 12px; }
+    .round-scroll{ padding:16px 2px 24px; }
+  }
+
+  /* ============ WORD VIEWER SCREEN ============ */
+  #screen-words{
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(163,57,42,0.06), transparent 55%),
+      var(--paper);
+    color:var(--ink);
+  }
+  .words-chrome{
+    position:absolute; top:0; left:0; right:0;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 18px;
+    z-index:5;
+    background:linear-gradient(to bottom, rgba(242,234,217,0.92), transparent);
+  }
+  .words-chrome .nav-back{ border-color:var(--ink-soft); color:var(--ink-soft); }
+  .words-chrome .nav-back:hover{ border-color:var(--shu); color:var(--shu-deep); }
+  .progress-label{
+    font-size:0.72rem;
+    letter-spacing:0.15em;
+    color:var(--ink-soft);
+  }
+  .chrome-right{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .nav-list{
+    background:var(--card);
+    border:1px solid var(--gold);
+    color:var(--shu-deep);
+    font-family:'Shippori Mincho',serif;
+    font-weight:700;
+    font-size:0.78rem;
+    letter-spacing:0.15em;
+    padding:7px 14px;
+    border-radius:3px;
+    cursor:pointer;
+    transition:transform .15s, box-shadow .15s;
+  }
+  .nav-list:hover{ box-shadow:0 4px 12px -6px rgba(163,57,42,0.4); }
+  .nav-list:active{ transform:scale(.94); }
+
+  .list-overlay{
+    position:absolute; inset:0;
+    z-index:20;
+    background:rgba(36,32,25,0.42);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .3s ease;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+  }
+  .list-overlay.open{
+    opacity:1;
+    pointer-events:auto;
+  }
+  .list-panel{
+    width:100%;
+    max-width:640px;
+    max-height:78%;
+    background:var(--paper);
+    border-top:3px double var(--gold);
+    border-radius:14px 14px 0 0;
+    box-shadow:0 -18px 40px -18px rgba(36,32,25,0.5);
+    display:flex;
+    flex-direction:column;
+    transform:translateY(24px);
+    transition:transform .35s cubic-bezier(.2,.8,.3,1);
+  }
+  .list-overlay.open .list-panel{ transform:translateY(0); }
+  .list-panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 20px;
+    border-bottom:1px solid var(--line);
+    flex-shrink:0;
+  }
+  .list-panel-header h3{
+    margin:0;
+    font-size:1rem;
+    letter-spacing:0.1em;
+    color:var(--ink);
+  }
+  .list-panel-header .nav-back{ border-color:var(--ink-soft); color:var(--ink-soft); font-size:1.1rem; }
+  .list-grid{
+    overflow-y:auto;
+    padding:16px 18px 28px;
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(120px,1fr));
+    gap:10px;
+  }
+  .list-chip{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:3px solid var(--shu);
+    padding:10px 12px;
+    text-align:left;
+    cursor:pointer;
+    font-family:'Shippori Mincho',serif;
+    transition:border-color .15s, transform .15s, background .15s;
+  }
+  .list-chip:hover{ border-color:var(--shu); transform:translateY(-2px); }
+  .list-chip:active{ transform:translateY(0) scale(.97); }
+  .list-chip.current{ background:rgba(163,57,42,0.1); border-left-color:var(--shu-deep); }
+  .list-chip .li-idx{
+    font-size:0.65rem;
+    color:var(--ink-soft);
+    letter-spacing:0.1em;
+  }
+  .list-chip .li-word{
+    display:block;
+    font-size:1rem;
+    font-weight:700;
+    color:var(--ink);
+    margin:2px 0 3px;
+  }
+  .list-chip .li-mean{
+    display:block;
+    font-size:0.72rem;
+    color:var(--ink-soft);
+    line-height:1.5;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+  }
+  .progress-rail{
+    position:absolute; top:0; bottom:0; right:6px;
+    width:3px;
+    background:rgba(74,66,53,0.12);
+    z-index:5;
+  }
+  .progress-fill{
+    position:absolute; top:0; left:0; right:0;
+    height:0%;
+    background:var(--shu);
+    transition:height .35s ease;
+  }
+
+  .words-container{
+    height:100%;
+    overflow-y:scroll;
+    scroll-snap-type:y mandatory;
+    scroll-behavior:smooth;
+  }
+  .page{
+    height:calc(var(--vh, 1vh) * 100);
+    scroll-snap-align:start;
+    scroll-snap-stop:always;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    padding:70px 16px 40px;
+    opacity:0.28;
+    transform:scale(0.92);
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .page.active{
+    opacity:1;
+    transform:scale(1);
+  }
+  .page::before{
+    content:"";
+    position:absolute; inset:14px;
+    border:1px solid rgba(163,128,63,0.28);
+    pointer-events:none;
+  }
+  .page-idx-mark{
+    position:absolute;
+    bottom:18px; left:50%;
+    transform:translateX(-50%);
+    font-size:0.68rem;
+    letter-spacing:0.3em;
+    color:var(--ink-soft);
+  }
+
+  .tate-flow{
+    writing-mode:vertical-rl;
+    text-orientation:mixed;
+    height:min(72vh, 560px);
+    max-width:88vw;
+    columns:1;
+    column-width:168px;
+    column-gap:30px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    padding:4px 6px;
+    scrollbar-width:thin;
+  }
+  .tate-flow::-webkit-scrollbar{ height:4px; }
+  .tate-flow::-webkit-scrollbar-thumb{ background:rgba(201,187,153,0.25); }
+
+  .tate-headword{
+    font-family:'Shippori Mincho', serif;
+    font-weight:800;
+    font-size:clamp(2rem, 7vw, 2.9rem);
+    margin:0 0 14px;
+    color:var(--ink);
+    line-height:1.25;
+  }
+  .tate-headword .ch{
+    opacity:0;
+    filter:blur(3px);
+  }
+  .page.active .tate-headword .ch{
+    animation:chInWord .5s ease forwards;
+  }
+  @keyframes chInWord{
+    to{ opacity:1; filter:blur(0); }
+  }
+  .tate-pos{
+    display:inline-block;
+    font-size:0.68rem;
+    color:var(--ai);
+    border:1px solid var(--ai);
+    padding:2px 5px;
+    margin:0 0 18px;
+    border-radius:2px;
+  }
+  .tate-meaning{
+    font-size:1.05rem;
+    font-weight:700;
+    color:var(--shu-deep);
+    margin:0 0 22px;
+    line-height:2;
+  }
+  .tate-block{
+    font-size:0.86rem;
+    color:var(--ink-soft);
+    margin:0 0 22px;
+    line-height:2.05;
+    opacity:0;
+    transform:translateY(8px);
+  }
+  .page.active .tate-block{
+    animation:blockIn .6s ease forwards;
+  }
+  .tate-block .tag{
+    display:inline-block;
+    font-size:0.68rem;
+    letter-spacing:0.1em;
+    color:var(--gold);
+    border-bottom:1px solid var(--gold);
+    margin-bottom:8px;
+    padding-bottom:2px;
+  }
+  .tate-block.mne .tag{ color:var(--ai); border-color:var(--ai); }
+  .tate-block.ex .tag{ color:var(--shu); border-color:var(--shu); }
+  .tate-block .ex-text{
+    font-family:'Shippori Mincho', serif;
+    font-weight:600;
+    font-size:0.98rem;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .tate-block .ex-trans{ font-size:0.78rem; color:var(--ink-soft); margin:0; }
+  .tate-block .ex-src{
+    display:inline-block;
+    margin-top:8px;
+    font-size:0.64rem;
+    color:var(--shu-deep);
+    border:1px solid var(--shu);
+    padding:1px 6px;
+    border-radius:2px;
+  }
+  @keyframes blockIn{ to{ opacity:1; transform:translateY(0); } }
+
+  .scroll-cue{
+    position:absolute;
+    bottom:16px; right:22px;
+    writing-mode:vertical-rl;
+    font-size:0.65rem;
+    letter-spacing:0.3em;
+    color:var(--ink-soft);
+    display:flex; align-items:center; gap:6px;
+    animation:cueBounce 1.8s ease-in-out infinite;
+  }
+  @keyframes cueBounce{
+    0%,100%{ transform:translateY(0); opacity:.7; }
+    50%{ transform:translateY(6px); opacity:1; }
+  }
+
+  @media (max-height:820px){
+    .page{ padding:56px 16px 30px; }
+    .tate-flow{ height:min(68vh, 470px); }
+    .tate-headword{ font-size:clamp(1.6rem, 6vw, 2.3rem); margin-bottom:10px; }
+    .tate-meaning{ margin-bottom:16px; }
+    .tate-block{ margin-bottom:16px; font-size:0.8rem; }
+  }
+
+
+  /* ============ 学習画面：意味を隠す / 例文の下線 ============ */
+  .nav-list.toggle{ font-size:0.74rem; padding:7px 12px; }
+  .nav-list.on{ background:var(--shu); color:#fbf3e3; border-color:var(--shu-deep); }
+  .secret{ transition:color .4s ease, background-color .4s ease; border-radius:2px; }
+  body.hide-meaning .secret:not(.shown){
+    color:transparent !important;
+    background-color:rgba(163,57,42,0.88);
+    cursor:pointer;
+    -webkit-user-select:none; user-select:none;
+    animation:maskPulse 2.6s ease-in-out infinite;
+  }
+  body.hide-meaning .secret:not(.shown) *{ color:transparent !important; }
+  @keyframes maskPulse{ 0%,100%{ background-color:rgba(163,57,42,0.9); } 50%{ background-color:rgba(163,57,42,0.72); } }
+  body.hide-meaning .list-chip .li-mean{
+    color:transparent; background:rgba(163,57,42,0.78); border-radius:2px;
+  }
+  .hit{
+    color:var(--shu-deep);
+    font-weight:700;
+    text-decoration:underline;
+    text-decoration-color:var(--shu);
+    text-decoration-thickness:2px;
+    text-underline-offset:0.22em;
+  }
+  .tate-flow .hit{ text-underline-position:right; }
+  .tate-block .ex-item{ margin:0 0 14px; }
+  .tate-block .ex-no{ color:var(--shu); font-weight:700; margin-right:0.2em; }
+
+  /* ============ モード選択（学習 / テスト） ============ */
+  #screen-mode{ background:var(--paper); }
+  .mode-chrome{
+    position:absolute; top:0; left:0; right:0;
+    display:flex; align-items:center; gap:14px;
+    padding:18px 22px; z-index:8;
+  }
+  .mode-chrome{ pointer-events:none; }
+  .mode-chrome > *{ pointer-events:auto; }
+  .mode-chrome-title{ font-size:0.82rem; letter-spacing:0.32em; color:var(--ink-soft); }
+  .mode-stage{
+    position:absolute; inset:0;
+    touch-action:none;
+    -webkit-user-select:none; user-select:none;
+    cursor:grab; overflow:hidden;
+  }
+  .mode-stage.dragging{ cursor:grabbing; }
+  .mode-panel{
+    position:absolute; top:0; bottom:0; width:58%;
+    display:flex; align-items:center;
+    opacity:var(--p,0);
+    pointer-events:none;
+    transition:opacity .35s ease, width .55s cubic-bezier(.7,0,.3,1);
+    z-index:1;
+  }
+  .mode-stage.dragging .mode-panel{ transition:none; }
+  .mode-panel.left{
+    left:0; justify-content:flex-start; padding-left:7vw; color:#f4eddc;
+    background:linear-gradient(90deg, #33506e 0%, #33506e 55%, rgba(51,80,110,0) 100%);
+  }
+  .mode-panel.right{
+    right:0; justify-content:flex-end; padding-right:7vw; color:#fcf2e2;
+    background:linear-gradient(270deg, #a3392a 0%, #a3392a 55%, rgba(163,57,42,0) 100%);
+  }
+  .mp-inner{ display:flex; align-items:center; gap:clamp(14px,2.4vw,30px); transform:translateX(calc((1 - var(--p,0)) * -46px)); }
+  .mode-panel.right .mp-inner{ flex-direction:row-reverse; transform:translateX(calc((1 - var(--p,0)) * 46px)); }
+  .mp-vert{
+    display:flex; flex-direction:column; align-items:center; gap:0.16em;
+    font-family:'Shippori Mincho',serif; font-weight:800;
+    font-size:clamp(2.2rem, 8.5vh, 3.8rem); line-height:1;
+  }
+  .mp-side{ display:flex; flex-direction:column; gap:10px; align-items:flex-start; }
+  .mode-panel.right .mp-side{ align-items:flex-end; }
+  .mp-sub{ font-size:0.8rem; letter-spacing:0.28em; opacity:0.9; }
+  .mp-arrow{ font-size:1.6rem; letter-spacing:0.1em; opacity:0.95; }
+  .mode-stage.commit-study .mode-panel.left{ width:100%; background:#33506e; }
+  .mode-stage.commit-test .mode-panel.right{ width:100%; background:#a3392a; }
+
+  .mode-card{
+    position:absolute; left:50%; top:46%;
+    width:min(480px, 62vw);
+    transform:translate(-50%,-50%) translateX(var(--dx,0px)) rotate(var(--rot,0deg));
+    transition:transform .5s cubic-bezier(.2,.8,.3,1), opacity .4s ease;
+    will-change:transform;
+    z-index:3;
+  }
+  .mode-stage.dragging .mode-card{ transition:none; }
+  .screen.active .mode-card{ animation:cardRise .9s cubic-bezier(.2,.8,.3,1) backwards .1s; }
+  @keyframes cardRise{
+    from{ opacity:0; transform:translate(-50%,-44%) scale(.94) rotate(-1.5deg); }
+  }
+  .mc-frame{
+    background:var(--card);
+    border:1px solid var(--line);
+    outline:1px solid rgba(163,128,63,0.4); outline-offset:-9px;
+    padding:clamp(28px,6vh,48px) 30px clamp(24px,5vh,38px);
+    text-align:center;
+    box-shadow:0 34px 56px -30px rgba(36,32,25,0.6);
+    position:relative;
+  }
+  .mc-frame::before, .mc-frame::after{
+    content:""; position:absolute; width:16px; height:16px; border:2px solid var(--shu);
+  }
+  .mc-frame::before{ top:-7px; left:-7px; border-right:none; border-bottom:none; }
+  .mc-frame::after{ bottom:-7px; right:-7px; border-left:none; border-top:none; }
+  .mc-kicker{ font-size:0.74rem; letter-spacing:0.55em; color:var(--ink-soft); }
+  .mc-round{
+    font-family:'Shippori Mincho',serif; font-weight:800;
+    font-size:clamp(2.3rem, 9vh, 3.7rem); letter-spacing:0.14em;
+    color:var(--ink); margin:0.3em 0 0.1em;
+  }
+  .mc-rule{ width:0; height:2px; background:var(--shu); margin:14px auto; }
+  .screen.active .mc-rule{ animation:ruleGrow .8s cubic-bezier(.2,.8,.3,1) forwards .6s; }
+  @keyframes ruleGrow{ to{ width:64px; } }
+  .mc-meta{ font-size:0.88rem; color:var(--ink-soft); letter-spacing:0.22em; }
+  .mc-guide{
+    margin-top:clamp(14px,3vh,24px);
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:0.7rem; letter-spacing:0.16em; color:var(--ink-soft);
+  }
+  .mc-guide .gl{ color:#33506e; } .mc-guide .gr{ color:var(--shu); }
+
+  .mode-hints{
+    position:absolute; left:0; right:0; bottom:clamp(20px,8vh,70px);
+    display:flex; justify-content:center; gap:clamp(18px,7vw,110px);
+    z-index:4;
+  }
+  .hint-btn{
+    display:flex; align-items:center; gap:14px;
+    border:1px solid var(--ink-soft);
+    background:rgba(250,245,232,0.92);
+    padding:12px 24px;
+    font-family:'Shippori Mincho',serif;
+    color:var(--ink); cursor:pointer;
+    transition:transform .15s, box-shadow .25s, background .25s, border-color .25s;
+    opacity:0;
+    animation:hintUp .7s cubic-bezier(.2,.8,.3,1) forwards 1s;
+  }
+  .hint-btn.test{ animation-delay:1.15s; }
+  @keyframes hintUp{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:translateY(0); } }
+  .hint-btn:hover{ box-shadow:0 12px 24px -16px rgba(36,32,25,0.55); transform:translateY(-3px); }
+  .hint-btn:active{ transform:scale(.96); }
+  .hint-btn.study:hover{ border-color:#33506e; background:rgba(51,80,110,0.08); }
+  .hint-btn.test:hover{ border-color:var(--shu); background:rgba(163,57,42,0.08); }
+  .hint-btn b{ display:block; font-size:1.05rem; letter-spacing:0.28em; font-weight:800; }
+  .hint-btn small{ display:block; font-size:0.64rem; letter-spacing:0.12em; color:var(--ink-soft); margin-top:2px; }
+  .hint-btn .arr{ font-size:1.05rem; letter-spacing:-0.1em; }
+  .hint-btn.study .arr{ color:#33506e; animation:nudgeR 1.7s ease-in-out infinite; }
+  .hint-btn.test .arr{ color:var(--shu); animation:nudgeL 1.7s ease-in-out infinite; }
+  @keyframes nudgeR{ 0%,100%{ transform:translateX(0); opacity:.55; } 50%{ transform:translateX(9px); opacity:1; } }
+  @keyframes nudgeL{ 0%,100%{ transform:translateX(0); opacity:.55; } 50%{ transform:translateX(-9px); opacity:1; } }
+
+  /* ============ テスト画面 ============ */
+  :root{ --ok:#2f6a52; --ok-bg:#e3ecdd; --bad-bg:#f5dcd4; }
+  #screen-test{
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(163,57,42,0.06), transparent 55%),
+      var(--paper);
+  }
+  .test-chrome{
+    position:absolute; top:0; left:0; right:0;
+    display:flex; align-items:center; justify-content:space-between; gap:14px;
+    padding:16px 22px 10px; z-index:6;
+  }
+  .test-progress-label{ font-size:0.76rem; letter-spacing:0.2em; color:var(--ink-soft); flex:1; }
+  .test-score{ display:flex; align-items:center; gap:16px; font-size:0.76rem; letter-spacing:0.14em; color:var(--ink-soft); }
+  .test-score b{
+    display:inline-block; font-family:'Shippori Mincho',serif;
+    font-size:1.25rem; color:var(--shu); margin:0 2px;
+  }
+  .test-score b.pop{ animation:popNum .5s cubic-bezier(.2,1.7,.4,1); }
+  @keyframes popNum{ 0%{ transform:scale(1); } 40%{ transform:scale(1.7); } 100%{ transform:scale(1); } }
+  .streak{
+    color:var(--shu); font-weight:700; opacity:0; transform:scale(.6);
+    transition:opacity .3s, transform .35s cubic-bezier(.2,1.7,.4,1);
+  }
+  .streak.on{ opacity:1; transform:scale(1); }
+  .test-bar{ position:absolute; top:60px; left:22px; right:22px; height:3px; background:rgba(74,66,53,0.14); z-index:6; }
+  .test-bar-fill{ height:100%; width:0; background:var(--shu); transition:width .7s cubic-bezier(.2,.8,.3,1); position:relative; }
+  .test-bar-fill::after{
+    content:""; position:absolute; right:-4px; top:-3px; width:9px; height:9px; border-radius:50%;
+    background:var(--shu); box-shadow:0 0 0 4px rgba(163,57,42,0.18);
+  }
+
+  .test-stage{
+    position:absolute; inset:0;
+    padding:80px 28px 24px;
+    display:flex; justify-content:center; align-items:center;
+    overflow-y:auto;
+  }
+  .q-wrap{ width:min(940px,100%); margin:auto; }
+  .q-wrap.leaving{ animation:qLeave .38s ease forwards; }
+  .q-wrap.entering{ animation:qEnter .6s cubic-bezier(.2,.8,.3,1) backwards; }
+  @keyframes qLeave{ to{ opacity:0; transform:translateX(-46px); } }
+  @keyframes qEnter{ from{ opacity:0; transform:translateX(46px); } }
+  .q-no{
+    display:flex; align-items:center; gap:12px;
+    font-size:0.8rem; letter-spacing:0.4em; color:var(--shu); font-weight:700; margin-bottom:10px;
+  }
+  .q-no::after{ content:""; flex:1; height:1px; background:var(--line); }
+  .q-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-left:5px solid var(--shu);
+    padding:clamp(16px,3.2vh,32px) clamp(20px,3vw,40px);
+    box-shadow:0 24px 42px -32px rgba(36,32,25,0.6);
+  }
+  .q-prompt{ margin:0 0 0.5em; font-size:0.78rem; letter-spacing:0.14em; color:var(--ink-soft); }
+  .q-sentence{
+    margin:0; font-family:'Shippori Mincho',serif; font-weight:600;
+    font-size:clamp(1.3rem, 3.7vh, 2rem); line-height:2; color:var(--ink);
+  }
+  .q-sentence .c{ animation:qChar .4s ease backwards; }
+  @keyframes qChar{ from{ opacity:0; filter:blur(4px); } }
+  .q-hit{
+    color:var(--shu-deep);
+    background:linear-gradient(var(--shu),var(--shu)) no-repeat 0 94% / 100% 3px;
+    padding-bottom:0.05em;
+    animation:underlineDraw .6s cubic-bezier(.5,0,.2,1) backwards;
+    animation-delay:var(--ud,1s);
+  }
+  @keyframes underlineDraw{ from{ background-size:0% 3px; } }
+
+  .q-choices{
+    display:grid; grid-template-columns:1fr 1fr; gap:14px;
+    margin-top:clamp(12px,2.4vh,20px);
+    pointer-events:none;
+  }
+  .q-choices.ready{ pointer-events:auto; }
+  .choice{
+    position:relative;
+    display:flex; align-items:center;
+    min-height:clamp(56px,9vh,74px);
+    padding:12px 16px 12px 64px;
+    text-align:left;
+    background:var(--card);
+    border:1px solid var(--line);
+    font-family:'Shippori Mincho',serif; font-weight:600;
+    font-size:clamp(0.95rem, 2.3vh, 1.18rem); line-height:1.5;
+    color:var(--ink); cursor:pointer;
+    animation:choiceIn .55s cubic-bezier(.2,.8,.3,1) backwards;
+    animation-delay:var(--cd,0s);
+    transition:border-color .2s, background .25s, box-shadow .25s, transform .2s, opacity .3s;
+  }
+  @keyframes choiceIn{ from{ opacity:0; transform:translateY(18px); } }
+  .choice .lab{
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    width:36px; height:36px; border:1px solid var(--ink-soft); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:0.95rem; color:var(--ink-soft);
+    transition:background .25s, color .25s, border-color .25s;
+  }
+  .q-choices.ready .choice:not(.locked):hover{ border-color:var(--shu); transform:translateY(-3px); box-shadow:0 14px 24px -18px rgba(36,32,25,0.6); }
+  .q-choices.ready .choice:not(.locked):hover .lab{ border-color:var(--shu); color:var(--shu); }
+  .choice:not(.locked):active{ transform:scale(.985); }
+  .choice.locked{ cursor:default; }
+  .choice.correct{ background:var(--ok-bg); border-color:var(--ok); }
+  .choice.correct .lab{ background:var(--ok); border-color:var(--ok); color:#f6f2e4; }
+  .choice.wrong{ background:var(--bad-bg); border-color:var(--shu); animation:shake .45s ease; }
+  .choice.wrong .lab{ border-color:var(--shu); color:transparent; background:transparent; }
+  .choice.dim{ opacity:.42; }
+  @keyframes shake{ 0%,100%{ transform:translateX(0); } 20%{ transform:translateX(-8px); } 40%{ transform:translateX(7px); } 60%{ transform:translateX(-5px); } 80%{ transform:translateX(3px); } }
+  .mark{ position:absolute; pointer-events:none; overflow:visible; }
+  .mark path{
+    fill:none; stroke:var(--shu); stroke-linecap:round; stroke-linejoin:round;
+    stroke-dasharray:1; stroke-dashoffset:1;
+    animation:drawStroke .7s cubic-bezier(.4,0,.2,1) forwards;
+  }
+  .mark.maru{ left:0; top:0; }
+  .mark.maru path{ stroke-width:3.4; }
+  .mark.batsu{ left:12px; top:50%; width:40px; height:40px; transform:translateY(-50%); }
+  .mark.batsu path{ stroke-width:4; }
+  .mark.batsu path + path{ animation-delay:.22s; }
+  @keyframes drawStroke{ to{ stroke-dashoffset:0; } }
+
+  .q-feedback{
+    max-height:0; overflow:hidden; opacity:0;
+    margin-top:0;
+    transition:max-height .6s cubic-bezier(.2,.8,.3,1), opacity .45s ease, margin-top .4s ease;
+  }
+  .q-feedback.show{ max-height:420px; opacity:1; margin-top:16px; }
+  .fb-inner{
+    display:flex; gap:20px; align-items:center;
+    background:var(--card); border:1px solid var(--line); border-top:3px double var(--gold);
+    padding:16px 20px;
+  }
+  .fb-verdict{ font-family:'Shippori Mincho',serif; font-weight:800; font-size:clamp(1.3rem,3.4vh,1.8rem); min-width:5.4em; letter-spacing:0.1em; }
+  .fb-verdict.ok{ color:var(--ok); } .fb-verdict.ng{ color:var(--shu); }
+  .fb-body{ flex:1; font-size:clamp(0.82rem,1.9vh,0.95rem); line-height:1.85; color:var(--ink-soft); }
+  .fb-body b{ color:var(--ink); font-weight:700; }
+  .fb-body .fb-w{ color:var(--shu-deep); font-weight:800; }
+  .fb-next{
+    border:none; background:var(--shu); color:#fbf3e3;
+    padding:14px 24px; font-family:'Shippori Mincho',serif; font-weight:700; letter-spacing:0.24em; font-size:0.9rem;
+    cursor:pointer; white-space:nowrap;
+    transition:transform .15s, background .2s, box-shadow .25s;
+  }
+  .fb-next:hover{ background:var(--shu-deep); box-shadow:0 12px 22px -14px rgba(127,42,31,0.8); }
+  .fb-next:active{ transform:scale(.95); }
+  .fb-next .ar{ display:inline-block; animation:nudgeR 1.4s ease-in-out infinite; margin-left:8px; }
+
+  .test-intro{
+    position:absolute; inset:0; z-index:12;
+    background:radial-gradient(ellipse at 50% 40%, rgba(163,57,42,0.08), transparent 60%), var(--paper);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px;
+    transition:opacity .55s ease, transform .55s ease;
+  }
+  .test-intro.hide{ opacity:0; transform:scale(1.04); pointer-events:none; }
+  .ti-title{ font-family:'Shippori Mincho',serif; font-weight:800; font-size:clamp(2.2rem,9vh,3.8rem); letter-spacing:0.22em; color:var(--ink); }
+  .ti-title .c{ animation:qChar .5s ease backwards; }
+  .ti-line{ width:0; height:2px; background:var(--shu); }
+  .test-intro:not(.hide) .ti-line{ animation:lineGrow .9s cubic-bezier(.2,.8,.3,1) forwards .75s; }
+  @keyframes lineGrow{ to{ width:min(300px,50vw); } }
+  .ti-sub{ font-size:0.9rem; letter-spacing:0.36em; color:var(--ink-soft); opacity:0; }
+  .test-intro:not(.hide) .ti-sub{ animation:hintIn .8s ease forwards 1.3s; }
+
+  .test-result{
+    position:absolute; inset:0; z-index:14;
+    background:radial-gradient(ellipse at 50% 0%, rgba(163,57,42,0.08), transparent 55%), var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    padding:28px;
+    opacity:0; pointer-events:none; transition:opacity .55s ease;
+    overflow-y:auto;
+  }
+  .test-result.show{ opacity:1; pointer-events:auto; }
+  .rs-layout{ display:flex; gap:clamp(24px,5vw,72px); align-items:center; justify-content:center; flex-wrap:wrap; width:min(1000px,100%); margin:auto; }
+  .rs-ring{ position:relative; width:clamp(190px,36vh,270px); aspect-ratio:1; flex-shrink:0; }
+  .rs-ring svg{ width:100%; height:100%; transform:rotate(-90deg); }
+  .rs-ring circle{ fill:none; stroke-width:5; }
+  .rs-ring .bg{ stroke:rgba(74,66,53,0.14); }
+  .rs-ring .fg{ stroke:var(--shu); stroke-linecap:round; stroke-dasharray:1; stroke-dashoffset:1; transition:stroke-dashoffset 1.5s cubic-bezier(.2,.8,.3,1) .35s; }
+  .rs-num{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Shippori Mincho',serif; }
+  .rs-num .n{ font-size:clamp(3.2rem,13vh,4.8rem); font-weight:800; color:var(--shu-deep); line-height:1; }
+  .rs-num .of{ font-size:0.82rem; color:var(--ink-soft); letter-spacing:0.22em; margin-top:8px; }
+  .rs-side{ flex:1 1 340px; max-width:480px; }
+  .rs-kicker{ font-size:0.74rem; letter-spacing:0.5em; color:var(--shu); font-weight:700; }
+  .rs-comment{ font-family:'Shippori Mincho',serif; font-weight:800; font-size:clamp(1.35rem,3.8vh,2rem); margin:6px 0 4px; color:var(--ink); }
+  .rs-pct{ font-size:0.86rem; letter-spacing:0.16em; color:var(--ink-soft); margin:0 0 12px; }
+  .rs-wrong-title{ font-size:0.74rem; letter-spacing:0.3em; color:var(--ink-soft); border-bottom:1px solid var(--line); padding-bottom:6px; margin:0 0 6px; }
+  .rs-wrong{ max-height:clamp(120px,26vh,240px); overflow-y:auto; padding-right:4px; }
+  .rs-wrong .wi{
+    display:flex; gap:12px; align-items:baseline; padding:6px 0; border-bottom:1px dashed rgba(201,185,143,0.7);
+    font-size:0.88rem; animation:wiIn .5s ease backwards; animation-delay:var(--wd,0s);
+  }
+  @keyframes wiIn{ from{ opacity:0; transform:translateX(16px); } }
+  .rs-wrong .wi b{ font-family:'Shippori Mincho',serif; font-weight:800; color:var(--shu-deep); min-width:6.5em; }
+  .rs-wrong .wi span{ color:var(--ink-soft); }
+  .rs-perfect{ font-size:0.9rem; color:var(--ok); letter-spacing:0.16em; }
+  .rs-actions{ display:flex; gap:12px; flex-wrap:wrap; margin-top:20px; }
+  .rs-btn{
+    border:1px solid var(--ink-soft); background:var(--card); color:var(--ink);
+    padding:12px 20px; font-family:'Shippori Mincho',serif; font-weight:700; letter-spacing:0.16em; font-size:0.86rem;
+    cursor:pointer; transition:transform .15s, box-shadow .25s, background .2s;
+  }
+  .rs-btn:hover{ box-shadow:0 12px 22px -16px rgba(36,32,25,0.6); transform:translateY(-2px); }
+  .rs-btn:active{ transform:scale(.95); }
+  .rs-btn.primary{ background:var(--shu); border-color:var(--shu-deep); color:#fbf3e3; }
+  .rs-btn.primary:hover{ background:var(--shu-deep); }
+  .petal{
+    position:absolute; top:-30px; width:14px; height:14px; background:var(--shu);
+    border-radius:0 60% 0 60%; opacity:0; pointer-events:none;
+    animation:petalFall linear forwards;
+  }
+  @keyframes petalFall{
+    0%{ opacity:.0; transform:translateY(0) rotate(0deg); }
+    10%{ opacity:.55; }
+    100%{ opacity:0; transform:translateY(105vh) translateX(var(--dr,40px)) rotate(540deg); }
+  }
+
+  @media (max-width:760px){
+    .q-choices{ grid-template-columns:1fr; }
+    .fb-inner{ flex-direction:column; align-items:flex-start; }
+    .mode-hints{ gap:12px; }
+    .hint-btn{ padding:10px 14px; }
+  }
+  @media (max-height:700px){
+    .q-sentence{ line-height:1.8; }
+    .choice{ min-height:50px; padding-top:8px; padding-bottom:8px; }
+    .fb-inner{ padding:10px 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- TITLE SCREEN -->
+  <section id="screen-title" class="screen active">
+    <div class="title-stage">
+      <div class="title-frame">
+        <h1 class="title-vertical" id="titleText"></h1>
+      </div>
+      <p class="tap-hint">タップして はじめる</p>
+    </div>
+  </section>
+
+  <!-- ROUND SELECT SCREEN -->
+  <section id="screen-rounds" class="screen">
+    <div class="rounds-header">
+      <button class="nav-back" id="backToTitle">◁</button>
+      <h2>回 を 選 ぶ</h2>
+    </div>
+    <div class="round-scroll">
+      <div class="round-grid" id="roundGrid"></div>
+    </div>
+  </section>
+
+  <!-- WORD VIEWER SCREEN -->
+  <section id="screen-words" class="screen">
+    <div class="words-chrome">
+      <button class="nav-back" id="backToRounds">◁</button>
+      <div class="chrome-right">
+        <div class="progress-label" id="progressLabel"></div>
+        <button class="nav-list toggle" id="toggleHide" aria-pressed="false">意味を隠す</button>
+        <button class="nav-list" id="openList">目次</button>
+      </div>
+    </div>
+    <div class="progress-rail"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="words-container" id="wordsContainer"></div>
+
+    <div class="list-overlay" id="listOverlay">
+      <div class="list-panel">
+        <div class="list-panel-header">
+          <h3 id="listPanelTitle"></h3>
+          <button class="nav-back" id="closeList">×</button>
+        </div>
+        <div class="list-grid" id="listGrid"></div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- MODE SELECT SCREEN（学習 / テスト） -->
+  <section id="screen-mode" class="screen">
+    <div class="mode-chrome">
+      <button class="nav-back" id="backFromMode">◁</button>
+      <span class="mode-chrome-title">学 習 か テ ス ト か</span>
+    </div>
+    <div class="mode-stage" id="modeStage">
+      <div class="mode-panel left" id="panelStudy">
+        <div class="mp-inner">
+          <div class="mp-vert"><span>学</span><span>習</span></div>
+          <div class="mp-side"><div class="mp-arrow">▷▷</div><div class="mp-sub">単語を覚える</div></div>
+        </div>
+      </div>
+      <div class="mode-panel right" id="panelTest">
+        <div class="mp-inner">
+          <div class="mp-vert"><span>テ</span><span>ス</span><span>ト</span></div>
+          <div class="mp-side"><div class="mp-arrow">◁◁</div><div class="mp-sub">力を試す</div></div>
+        </div>
+      </div>
+
+      <div class="mode-card" id="modeCard">
+        <div class="mc-frame">
+          <div class="mc-kicker">古 文 単 語</div>
+          <div class="mc-round" id="mcRound">第一回</div>
+          <div class="mc-rule"></div>
+          <div class="mc-meta" id="mcMeta"></div>
+          <div class="mc-guide"><span class="gl">▷ 学習</span><span>スワイプで えらぶ</span><span class="gr">テスト ◁</span></div>
+        </div>
+      </div>
+
+      <div class="mode-hints">
+        <button class="hint-btn study" id="hintStudy"><span class="arr">▷▷</span><span><b>学習</b><small>左から右へスワイプ</small></span></button>
+        <button class="hint-btn test" id="hintTest"><span><b>テスト</b><small>右から左へスワイプ</small></span><span class="arr">◁◁</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEST SCREEN -->
+  <section id="screen-test" class="screen">
+    <div class="test-chrome">
+      <button class="nav-back" id="backFromTest">◁</button>
+      <div class="test-progress-label" id="testProgressLabel"></div>
+      <div class="test-score">
+        <span class="streak" id="testStreak"></span>
+        <span>正解 <b id="testCorrect">0</b></span>
+      </div>
+    </div>
+    <div class="test-bar"><div class="test-bar-fill" id="testBarFill"></div></div>
+
+    <div class="test-stage" id="testStage">
+      <div class="q-wrap" id="qWrap">
+        <div class="q-no" id="qNo"></div>
+        <div class="q-card">
+          <p class="q-prompt">下線部の、この文での意味として最も適当なものを選べ。</p>
+          <p class="q-sentence" id="qSentence"></p>
+        </div>
+        <div class="q-choices" id="qChoices"></div>
+        <div class="q-feedback" id="qFeedback"></div>
+      </div>
+    </div>
+
+    <div class="test-intro hide" id="testIntro">
+      <div class="ti-title" id="tiTitle"></div>
+      <div class="ti-line"></div>
+      <div class="ti-sub" id="tiSub"></div>
+    </div>
+
+    <div class="test-result" id="testResult">
+      <div class="rs-layout">
+        <div class="rs-ring">
+          <svg viewBox="0 0 100 100"><circle class="bg" cx="50" cy="50" r="45"/><circle class="fg" id="rsFg" cx="50" cy="50" r="45" pathLength="1"/></svg>
+          <div class="rs-num"><div class="n" id="rsNum">0</div><div class="of" id="rsOf"></div></div>
+        </div>
+        <div class="rs-side">
+          <div class="rs-kicker" id="rsKicker"></div>
+          <div class="rs-comment" id="rsComment"></div>
+          <p class="rs-pct" id="rsPct"></p>
+          <div id="rsWrongBox">
+            <div class="rs-wrong-title">まちがえた問題</div>
+            <div class="rs-wrong" id="rsWrong"></div>
+          </div>
+          <div class="rs-actions">
+            <button class="rs-btn primary" id="rsRetryWrong">まちがいだけ やり直す</button>
+            <button class="rs-btn" id="rsRetryAll">もう一度</button>
+            <button class="rs-btn" id="rsToStudy">学習へ</button>
+            <button class="rs-btn" id="rsToRounds">回を選ぶ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const ROUNDS = [
+{id:1, words:[
+ {w:"あいなし", pos:"形", mean:"つまらない／気にくわない／わけもなく", expl:"「愛（あい）」＋「無し」から、相手に愛着や好感が持てない気持ちを表し、そこから広く「おもしろくない・不都合だ」の意に発展した語。", mne:"「愛（あい）」が「無し」＝愛情が湧かない→つまらない、と丸ごと覚える。", senses:[{m:"つまらない・気にくわない",t:"口ばかり巧みなる人の言葉を、[[あいなし]]と思ふ。",tr:"口先ばかり巧みな人の言葉を、つまらない（気にくわない）と思う。"},{m:"わけもなく・むやみに",t:"[[あいなく]]涙のこぼるる夕暮れなり。",tr:"わけもなく涙がこぼれる夕暮れである。"}]},
+ {w:"あからさまなり", pos:"形動", mean:"①急だ・突然だ　②かりそめだ・一時的だ", expl:"現代語の『あからさま（露骨）』とは意味が異なる要注意語。光がぱっと差してすぐ消えるイメージで、物事の一時性・突発性を表す。", mne:"「明るい」がパッと差してすぐ消える→『一瞬だけ・急に』と結びつける。", senses:[{m:"急だ・突然だ",t:"[[あからさまに]]風吹き出でて、花みな散りぬ。",tr:"突然風が吹き出して、花がみな散った。"},{m:"かりそめだ・一時的だ",t:"[[あからさまなる]]宿りなれば、またすぐ出でたまひぬ。",tr:"ほんの一時的な宿りなので、またすぐお出になった。"}]},
+ {w:"あく", pos:"動（下二段）", mean:"飽きる・いやになる", expl:"現代語の『飽きる』とほぼ同じ意味で使われる、古文の中では素直な語。", mne:"読み方も意味も現代語とほぼ同じなのでそのまま覚えてよい。", senses:[{m:"飽きる・いやになる",t:"毎日見れど[[あか]]ぬ花の色なり。",tr:"毎日見ても飽きない花の色である。"}]},
+ {w:"あさまし", pos:"形", mean:"驚きあきれるほどだ・（程度が）ひどい・情けない", expl:"良い意味にも悪い意味にも使え、とにかく『驚きの度合いが甚だしい』ことを表す評価語。", mne:"現代語『あさましい』（見苦しい）よりもまず『驚きあきれる』の意味を先に思い出す。", senses:[{m:"驚きあきれるほどだ",t:"思ひがけぬことなれば、人々[[あさまし]]と見る。",tr:"思いがけないことなので、人々は驚きあきれたと思う。"},{m:"情けない・ひどい",t:"かかる心ばへこそ[[あさましけれ]]。",tr:"このような心がけは情けなくひどいものだ。"}]},
+ {w:"あした", pos:"名", mean:"朝", expl:"現代語『明日』とは異なり、古文では単に『朝』を意味する最頻出の同音異義語。対義語は『ゆふべ（夕方）』。", mne:"『あした』と『ゆふべ』はセットで『朝と夕方』のペアとして覚える。", senses:[{m:"朝",t:"[[あした]]に起きて、庭を見る。",tr:"朝に起きて庭を見る。"}]},
+ {w:"あそび", pos:"名", mean:"管弦の遊び・詩歌管弦の催し／遊興", expl:"現代語の『遊び』よりも、和歌・管弦・詩歌などを楽しむ風雅な催しを指すことが多い。", mne:"『あそび』はまず子供の遊びではなく『管弦の遊び（音楽会）』と思い出す。", senses:[{m:"管弦の遊び・詩歌管弦の催し",t:"月の夜、御[[あそび]]あり。",tr:"月の美しい夜に、管弦の催しがあった。"}]},
+ {w:"あだなり", pos:"形動", mean:"不誠実だ・浮気っぽい・はかない・むだだ", expl:"漢字を当てると『徒なり』。実（じつ）がなく、誠実さや実りに欠ける様子を表し、恋愛関係の移り気にもよく使われる。", mne:"『あだ』＝『徒（あだ）』＝無駄・実りなし、とイメージする。", senses:[{m:"不誠実だ・浮気っぽい",t:"[[あだなる]]人の心を頼まじ。",tr:"不誠実な人の心を頼りにはすまい。"},{m:"はかない・むだだ",t:"[[あだなる]]桜の、夜のうちに散りにけり。",tr:"はかない桜が、一夜のうちに散ってしまった。"}]},
+ {w:"あたらし", pos:"形", mean:"惜しい・もったいない", expl:"現代語『新しい』とはまったく別の語で、入試最頻出の紛らわしい語。『あたら（惜）』が語源。", mne:"『新しい』と混同しないよう、『あたら＝惜しい』とセットで唱えて覚える。", senses:[{m:"惜しい・もったいない",t:"かくすぐれたる人の失せたるこそ[[あたらしけれ]]。",tr:"これほど優れた人が亡くなったのは惜しいことだ。"}]},
+ {w:"あぢきなし", pos:"形", mean:"どうにもならない・つまらない・道理に合わない", expl:"物事が思うようにいかず、どうしようもない空しさや不快感を表す語。", mne:"現代語『味気ない』のニュアンスに重ねて『どうにもならない』を覚える。", senses:[{m:"どうにもならない・むなしい",t:"世の中は[[あぢきなき]]ものなりけり。",tr:"世の中はどうにもならないむなしいものであった。"},{m:"道理に合わない・無益だ",t:"[[あぢきなき]]ことを言ひて、人を悩ます。",tr:"道理に合わない無益なことを言って、人を悩ませる。"}]},
+ {w:"あてなり", pos:"形動", mean:"高貴だ・上品だ", expl:"漢字を当てると『貴なり』。身分の高さや気品の良さを表す。", mne:"『あて』＝『貴（あて）』で、皇族・貴族の気品を思い浮かべる。", senses:[{m:"高貴だ・上品だ",t:"[[あてなる]]人の御ありさまなり。",tr:"気品のある方のご様子である。"}]},
+ {w:"あない", pos:"名", mean:"案内・取り次ぎ・様子", expl:"現代語の『案内』に近いが、来訪を取り次いでもらう動作そのものを指すことも多い。", mne:"現代語とほぼ同じ意味なので、漢字『案内』をそのまま当てて覚える。", senses:[{m:"取り次ぎ・案内",t:"門に立ちて[[あない]]を請ふ。",tr:"門に立って取り次ぎを頼む。"},{m:"様子・事情",t:"かの家の[[あない]]をよく知りたる人なり。",tr:"あの家の事情をよく知っている人である。"}]},
+ {w:"あながちなり", pos:"形動", mean:"無理やりだ・ひたすらだ・強引だ", expl:"下に打消を伴うと『必ずしも～ない』という訳になる重要語。", mne:"『強ち（あながち）』＝無理に、下に『ず』があれば『必ずしも～ない』と変換する。", senses:[{m:"無理やりだ・強引だ",t:"[[あながちなる]]御ふるまひに、人々もいとほしがる。",tr:"無理やりなお振る舞いに、人々も気の毒がる。"},{m:"ひたすらだ・むやみだ",t:"[[あながちに]]恋ひ慕ふ心ぞ苦しき。",tr:"ひたすら恋い慕う心が苦しい。"},{m:"（打消を伴って）必ずしも～ない",t:"[[あながちに]]憎むべき人にもあらず。",tr:"必ずしも憎むべき人でもない。"}]},
+ {w:"あなかま", pos:"感動詞", mean:"ああ、やかましい・静かにしなさい", expl:"『あな（ああ）』＋『かまし（やかましい）』の略で、人を制止するときに発する言葉。", mne:"『あな（ああ）』＋『かまし』→『静かに！』と一語で叫ぶ場面を想像する。", senses:[{m:"ああ、やかましい・静かに",t:"[[あなかま]]、人に聞かすな。",tr:"ああ静かに、人に聞かせるな。"}]},
+ {w:"あはれなり", pos:"形動", mean:"しみじみと趣深い・かわいそうだ・愛情深い", expl:"心にしみじみと迫る感動全般を表す、日本文学の美意識の中核をなす最重要語。", mne:"感動詞『あはれ（ああ）』から発展した語で、『しみじみ感じる』が基本イメージ。", senses:[{m:"しみじみと趣深い",t:"三つ四つ、二つ三つなど飛び急ぐさへ[[あはれなり]]。",tr:"（烏が）三つ四つ、二つ三つと飛び急ぐ様子までもしみじみと趣深い。",s:"枕草子（第一段・秋）"},{m:"かわいそうだ・気の毒だ",t:"親を亡くしたる幼き子の泣く声、いと[[あはれなり]]。",tr:"親を亡くした幼い子の泣く声は、とてもかわいそうだ。"},{m:"いとしい・愛情深い",t:"妻を[[あはれに]]思ひて、常に離れず。",tr:"妻をいとしく思って、いつも離れない。"}]},
+ {w:"あふ", pos:"動（四段）", mean:"結婚する・男女が深い関係を結ぶ", expl:"単なる面会ではなく、男女が契りを結ぶ意味で使われることが多い点に注意。", mne:"『あふ』は『ただ会う』ではなく『結ばれる』と一段深く訳す癖をつける。", senses:[{m:"結婚する・男女が契りを結ぶ",t:"親の許さぬ男に[[あひ]]て、家を出づ。",tr:"親が許さない男と結ばれて、家を出る。"}]},
+]},
+{id:2, words:[
+ {w:"あへず", pos:"連語", mean:"～しきれない・～できない", expl:"動詞の連用形に付いて『最後まで～しきれない』という不可能・限界を表す。", mne:"『敢（あ）へず』＝敢えてしきれない→『～しきれない』と訳す。", senses:[{m:"～しきれない・～できない",t:"涙をおさへ[[あへ]]ず、声をあげて泣く。",tr:"涙を抑えきれず、声をあげて泣く。"}]},
+ {w:"あへなし", pos:"形", mean:"あっけない・どうしようもない", expl:"張り合いがなく、あっけなく終わってしまう様子を表す語。", mne:"『敢へ無し』＝手ごたえが無い→『あっけない』と結びつける。", senses:[{m:"あっけない・張り合いがない",t:"頼みし人の[[あへなく]]亡せぬ。",tr:"頼りにしていた人があっけなく亡くなった。"},{m:"どうしようもない・力が抜ける",t:"かくなるうへは、[[あへなし]]とて嘆くばかりなり。",tr:"こうなってしまっては、どうしようもないと嘆くばかりである。"}]},
+ {w:"あやし", pos:"形", mean:"不思議だ・身分が低い・粗末だ", expl:"『怪し』（不思議）と『賤し』（身分が低い）の両方の意味を持つ多義語で文脈判断が必要。", mne:"『怪しい人＝身分の低い人』という連想で二つの意味を一度に覚える。", senses:[{m:"不思議だ・怪しい",t:"夜更けてかかる声の聞こゆるは[[あやしき]]ことなり。",tr:"夜更けにこのような声が聞こえるのは不思議なことだ。"},{m:"身分が低い・粗末だ",t:"[[あやしき]]しづの家に住まひて、世を過ぐす。",tr:"身分の低い者の粗末な家に住んで、世を過ごす。"}]},
+ {w:"あやなし", pos:"形", mean:"筋道が立たない・わけがわからない", expl:"『文目（あや）無し』で、物事の道理や模様が乱れて判別できない様子を表す。", mne:"『文目（あや）』＝模様・筋道が『無し』→わけがわからない、と漢字で覚える。", senses:[{m:"筋道が立たない・理屈に合わない",t:"[[あやなき]]ことを言ふ人かな。",tr:"筋の通らないことを言う人だなあ。"}]},
+ {w:"あやにくなり", pos:"形動", mean:"意地が悪い・あいにくだ・（程度が）ひどい", expl:"物事が都合悪く進む様子、また人の性質が意地悪いことを表す。", mne:"現代語『あいにく』の語源で、『都合が悪い』を軸に覚える。", senses:[{m:"意地が悪い",t:"[[あやにくなる]]心にて、人を困らせたまふ。",tr:"意地の悪い心で人をお困らせになる。"},{m:"あいにくだ・都合が悪い",t:"出でむとするに、[[あやにくに]]雨降りいづ。",tr:"出かけようとすると、あいにく雨が降り出した。"}]},
+ {w:"あらぬ", pos:"連体詞", mean:"意外な・思いがけない・別の", expl:"『あり』の未然形『あら』＋打消『ぬ』が連体詞化し、『そうではない』という意外性を表す。", mne:"『あら（ず）＋ぬ』→『そうではない方の』→『意外な・別の』と展開して覚える。", senses:[{m:"意外な・思いがけない",t:"[[あらぬ]]ことを言はれて驚きぬ。",tr:"思いがけないことを言われて驚いた。"},{m:"別の・ほかの",t:"[[あらぬ]]方を見て知らぬ顔なり。",tr:"別の方を見て知らないふりをしている。"}]},
+ {w:"あらまし", pos:"名", mean:"前もっての予想・計画・あらすじ", expl:"物事が起こる前にあらかじめ思い描く内容を指す。現代語『あらまし（大要）』にも通じる。", mne:"『あらかじめ』の『あら』から『前もっての予定・概要』を連想する。", senses:[{m:"前もっての予想・計画",t:"行く末の[[あらまし]]ばかり語りて日を暮らす。",tr:"将来の計画ばかり語って日を暮らす。"},{m:"あらすじ・大体",t:"事の[[あらまし]]を人に告ぐ。",tr:"事のあらすじを人に告げる。"}]},
+ {w:"あらまほし", pos:"形", mean:"理想的だ・そうあってほしい", expl:"『あり』の未然形に願望の助動詞『まほし』が付いた語が形容詞化したもの。", mne:"『あり＋まほし（願望）』＝『こうあってほしい』＝理想的、と語構成から覚える。", senses:[{m:"理想的だ・申し分ない",t:"[[あらまほしき]]人の御ありさまなり。",tr:"理想的な方のご様子である。"},{m:"そうあってほしい・望ましい",t:"少しのことにも、先達は[[あらまほしき]]事なり。",tr:"ちょっとしたことでも、案内人（先達）はあってほしいものだ。",s:"徒然草（第五十二段）"}]},
+ {w:"ありがたし", pos:"形", mean:"めったにない・貴重だ", expl:"現代語の『感謝』の意味ではなく、『有ることが難しい＝珍しい』が原義。", mne:"『有り難し』＝存在するのが難しい→『めったにない』と原義から覚える。", senses:[{m:"めったにない・珍しい",t:"かかる友こそ世に[[ありがたき]]ものなれ。",tr:"このような友は世にめったにないものだ。"}]},
+ {w:"ありく", pos:"動（四段）", mean:"歩き回る・動き回る", expl:"単に『歩く』だけでなく、あちこち動き回る様子を表す。", mne:"『あり＋く』で、その場に『あり』続けず動き『く』（行く）イメージ。", senses:[{m:"歩き回る・動き回る",t:"夜な夜な野辺を[[ありき]]たまふ。",tr:"夜ごと野辺を歩き回りなさる。"}]},
+ {w:"ありつる（ありし）", pos:"連体詞", mean:"先ほどの・前に述べた", expl:"『あり』の連体形が過去の出来事を指し示す表現として定着したもの。", mne:"『ありつる』＝『あった、あの』と、直前の出来事を指す指示語として覚える。", senses:[{m:"先ほどの・前に述べた",t:"[[ありつる]]人はいづこへ行きぬる。",tr:"先ほどの人はどこへ行ってしまったのか。"}]},
+ {w:"あるじ（す）", pos:"名／動", mean:"主人／ご馳走する・もてなす", expl:"名詞では『主人』、サ変動詞化すると『饗応する・もてなす』の意味になる。", mne:"『あるじす』は『主人としてもてなす』と動詞化した形で覚える。", senses:[{m:"主人",t:"[[あるじ]]出で来て、客を迎ふ。",tr:"主人が出てきて、客を迎える。"},{m:"ご馳走する・もてなす",t:"遠き旅の人を、いとねんごろに[[あるじし]]たまふ。",tr:"遠方からの旅人を、たいそう丁寧にもてなしなさる。"}]},
+ {w:"いうげんなり", pos:"形動", mean:"優雅だ・上品だ", expl:"優れた美しさ・上品さを称える語で、和歌や人物の趣を評する際に用いられる。", mne:"『優』の字のイメージそのまま『優雅・上品』と覚える。", senses:[{m:"優雅だ・上品だ",t:"[[いうげんなる]]姿にて舞ひたまふ。",tr:"優雅な姿でお舞いになる。"}]},
+ {w:"いかが", pos:"副", mean:"どう・どのように・どうして", expl:"状態や方法を問う疑問、また反語表現にも用いられる。", mne:"現代語『いかが（ですか）』とほぼ同じ感覚で使える。", senses:[{m:"どう・どのように",t:"この事、[[いかが]]すべき。",tr:"このことは、どうしたらよいか。"},{m:"どうして～か（反語）",t:"かかる世に、[[いかが]]頼むべき。",tr:"こんな世の中で、どうして頼りにできようか（いや、できない）。"}]},
+ {w:"いかで", pos:"副", mean:"どうにかして（願望）／どうして（疑問・反語）", expl:"下に意志・願望表現を伴えば『なんとかして』、疑問語として使えば『どうして』となる。", mne:"下に『ばや・む』などの願望があれば『なんとかして』と訳す、とセットで覚える。", senses:[{m:"なんとかして",t:"[[いかで]]この花を見ばや。",tr:"なんとかしてこの花を見たいものだ。"},{m:"どうして（疑問・反語）",t:"[[いかで]]かくは言ふべき。",tr:"どうしてこのように言えようか。"}]},
+]},
+{id:3, words:[
+ {w:"いかに", pos:"副", mean:"どのように・どんなに", expl:"状態・程度を問う疑問副詞で、会話の呼びかけにも使われる。", mne:"『いかに』は『いかが』の仲間で『どのように』の意味と覚える。", senses:[{m:"どのように",t:"今は[[いかに]]なりたまひぬらむ。",tr:"今はどうなっておしまいになったのだろう。"},{m:"どんなに（～だろう）",t:"親の心は[[いかに]]嬉しからむ。",tr:"親の心はどんなに嬉しいことだろう。"}]},
+ {w:"いそぎ", pos:"名", mean:"準備・急ぐこと", expl:"何かのために急いで用意を整えることを指す名詞。", mne:"『急ぎ』＝急いで行う『準備』と覚える。", senses:[{m:"準備・急ぐこと",t:"旅の[[いそぎ]]に、家の者ども立ち騒ぐ。",tr:"旅の準備に、家の者たちが立ち騒ぐ。"}]},
+ {w:"いたく", pos:"副", mean:"ひどく・たいそう", expl:"程度の甚だしさを表す副詞。下に打消を伴うと『たいして～ない』となる。", mne:"『甚く（いたく）』＝『痛いほど』ひどく、と語感で覚える。", senses:[{m:"ひどく・たいそう",t:"風[[いたく]]吹きて、木々の枝折れぬ。",tr:"風がひどく吹いて、木々の枝が折れた。"},{m:"（打消を伴って）たいして～ない",t:"親の死にも[[いたく]]嘆かざりけり。",tr:"親の死にもたいして嘆かなかった。"}]},
+ {w:"いたづらなり", pos:"形動", mean:"むなしい・無駄だ・することがない", expl:"現代語『いたずら（悪ふざけ）』とは異なり、『空しい・無為だ』を表す。", mne:"『徒（いたづら）』＝実がない→『むなしい・無駄』と覚える。", senses:[{m:"むなしい・無駄だ",t:"[[いたづらに]]日を過ぐすこそ惜しけれ。",tr:"むなしく日を過ごすのは惜しいことだ。"},{m:"することがない・ひまだ",t:"[[いたづらなる]]身を持て余し、庭に出で居る。",tr:"することのない身を持て余して、庭に出て座っている。"}]},
+ {w:"いつく", pos:"動（四段）", mean:"大切にお世話する・大事に育てる／（神に）お仕えする", expl:"『斎く』の字を当て、心身を清めて神に仕える意味から、大切にかしずき育てる意味に広がった語。『かしづく』に近い。", mne:"『斎（いつ）く』＝清らかに大切にする、で『かしづく』とセットで覚える。", senses:[{m:"大切にお世話する・大事に育てる",t:"親、姫君を[[いつき]]かしづく。",tr:"親は姫君を大切にお世話し育てる。"},{m:"（神に）お仕えする",t:"斎宮、神を[[いつく]]ために、野の宮に籠もりたまふ。",tr:"斎宮が神にお仕えするために、野の宮にお籠もりになる。"}]},
+ {w:"いつしか", pos:"副", mean:"早く～したい（願望）／いつの間にか", expl:"下に願望表現を伴えば『早く～したい』、単独では『いつの間にか』の意。", mne:"『いつ＋しか（早く）』で『早くそうなってほしい』という気持ちを表す。", senses:[{m:"早く～したい",t:"[[いつしか]]春になれかし。",tr:"早く春になってほしい。"},{m:"いつの間にか",t:"[[いつしか]]日も暮れにけり。",tr:"いつの間にか日も暮れてしまった。"}]},
+ {w:"いと（いとど）", pos:"副", mean:"たいそう（／ますます）", expl:"『いと』は程度の甚だしさ、『いとど』はそれがさらに強まる『いよいよ・ますます』。", mne:"『いと』＝とても、『いとど』＝『いと』が『ど』（重なる）でさらに強調、と覚える。", senses:[{m:"たいそう・とても",t:"[[いと]]美しき花なり。",tr:"たいそう美しい花である。"},{m:"ますます・いっそう",t:"[[いとど]]悲しさまさりぬ。",tr:"ますます悲しさが増した。"}]},
+ {w:"いとほし", pos:"形", mean:"かわいそうだ・いとおしい・気の毒だ", expl:"相手への同情や愛情から生まれる、心が痛むような気持ちを表す。", mne:"現代語『いとおしい』の語源で、『かわいそう＋愛しい』の両面を持つ。", senses:[{m:"かわいそうだ・気の毒だ",t:"泣く子を見て、[[いとほし]]くて、え捨てず。",tr:"泣く子を見て、かわいそうで、捨てることができない。"},{m:"いとしい・かわいい",t:"[[いとほしき]]妻子を残して旅立つ。",tr:"いとしい妻子を残して旅立つ。"}]},
+ {w:"いぶかし", pos:"形", mean:"気がかりだ・知りたい・不審だ", expl:"はっきりせず疑わしいことを知りたいと思う気持ちを表す。", mne:"『いぶかしい』は現代語にもほぼ同じ形で残っているので直感で覚える。", senses:[{m:"知りたい・見たい",t:"事の様子[[いぶかしく]]、人を遣はして問はす。",tr:"事の様子が知りたくて、人を遣わして尋ねさせる。"},{m:"不審だ・気がかりだ",t:"夜更けて叩く者あり。[[いぶかし]]とて、戸を開けず。",tr:"夜更けに戸を叩く者がいる。不審だと思って、戸を開けない。"}]},
+ {w:"いふかひなし", pos:"形", mean:"言ってもしかたない・どうしようもない・取るに足りない", expl:"『言ふ甲斐無し』の意で、言葉にする価値もないほどのひどさ・つまらなさを表す。", mne:"『言ふ＋甲斐（かひ）＋無し』＝言う価値がない、と語構成で覚える。", senses:[{m:"言ってもしかたない・どうしようもない",t:"今さら嘆くも[[いふかひなし]]。",tr:"今さら嘆いても言ってもしかたがない。"},{m:"取るに足りない・身分が低い",t:"[[いふかひなき]]下衆の身なれど、心ばへは優れたり。",tr:"取るに足りない卑しい身分だが、心がけは優れている。"}]},
+ {w:"いまやう", pos:"名", mean:"当世風・現代風", expl:"『今様』と書き、その時代の流行・最新のスタイルを指す。", mne:"『今』＋『様（やう）』＝『今どきの様式』とそのまま覚える。", senses:[{m:"当世風・現代風",t:"[[いまやう]]の装束いとはなやかなり。",tr:"当世風の装束がたいそう華やかである。"}]},
+ {w:"いみじ", pos:"形", mean:"（程度が）はなはだしい・すばらしい／ひどい", expl:"良い意味にも悪い意味にも使われる、程度の強さだけを表す最重要語。文脈判断が必須。", mne:"善悪どちらにも使う『ものすごい』という万能の強調語と覚える。", senses:[{m:"たいそう・非常に",t:"[[いみじく]]美しき児なり。",tr:"たいそう美しい子である。"},{m:"すばらしい・立派だ",t:"[[いみじき]]歌を詠みたまひけり。",tr:"すばらしい歌をお詠みになった。"},{m:"ひどい・つらい",t:"[[いみじき]]目を見て、人に会はず。",tr:"ひどい目にあって、人に会わない。"}]},
+ {w:"いやし", pos:"形", mean:"身分が低い・見苦しい・粗末だ", expl:"『賤し』の字を当て、身分の低さと、それに伴う見た目の粗末さの両方を表す。", mne:"現代語『卑しい』とほぼ同じ感覚でよい。", senses:[{m:"身分が低い",t:"[[いやしき]]身なれど、心清し。",tr:"身分は低いが、心は清らかだ。"},{m:"見苦しい・下品だ",t:"[[いやしき]]言葉遣ひは、聞きにくし。",tr:"下品な言葉遣いは聞きにくい。"}]},
+ {w:"うし", pos:"形", mean:"つらい・いやだ", expl:"心情的な苦しさ・嫌悪感を表す形容詞で、『憂し』の字を当てる。", mne:"『憂し（うし）』＝『憂鬱（ゆううつ）』の『憂』とつなげて覚える。", senses:[{m:"つらい・いやだ",t:"世の中は[[うし]]と思ひて、山に入る。",tr:"世の中をつらいと思って、山に入る。"}]},
+ {w:"うしろめたし", pos:"形", mean:"気がかりだ・不安だ", expl:"後ろに何か心配事が控えているような、落ち着かない不安を表す。", mne:"現代語『後ろめたい』（罪悪感）とは少しずれ、古文では単に『不安・心配』。", senses:[{m:"気がかりだ・不安だ",t:"行く末[[うしろめたく]]、眠られず。",tr:"将来が気がかりで、眠れない。"}]},
+]},
+{id:4, words:[
+ {w:"うしろやすし", pos:"形", mean:"安心だ", expl:"『うしろめたし』の対義語で、後を任せても安心だという気持ちを表す。", mne:"『うしろめたし』とセットで対義語として覚える（不安⇔安心）。", senses:[{m:"安心だ",t:"頼もしき人あれば、[[うしろやすし]]。",tr:"頼もしい人がいるので、安心だ。"}]},
+ {w:"うたてし", pos:"副／形動", mean:"いやな感じに・ますます（悪く）・情けなく", expl:"物事がどんどん悪い方向へ進んでいく、不快な変化を表す語。", mne:"『うたて』＝『うとましい方向へ移っていく』とイメージで覚える。", senses:[{m:"いやだ・情けない",t:"この世の有様、[[うたて]]ものうし。",tr:"この世のありさまは、いやでものうい。"},{m:"ますます（ひどく）",t:"雨風[[うたて]]まさりて、船出づべくもあらず。",tr:"雨風がますますひどくなって、船は出せそうもない。"}]},
+ {w:"うつくし", pos:"形", mean:"かわいらしい・いとしい", expl:"現代語『美しい』と違い、小さいものや幼い者、愛する者に対する『かわいらしさ・いとしさ』を表す。", mne:"『うつくし』は『美しい』ではなく『かわいい』、と現代語とのズレを意識して覚える。", senses:[{m:"かわいらしい・いとしい",t:"[[うつくしき]]児の、這ひ出で来たる。",tr:"かわいらしい幼子が、這い出してきた。"}]},
+ {w:"うつろふ", pos:"動（四段）", mean:"色あせる・衰える・心変わりする", expl:"花や葉の色が変化する様子から転じて、人の心が移り変わることも表す。", mne:"『移ろふ』＝『移る』が続く→色があせ、心も移っていく、と覚える。", senses:[{m:"色あせる・衰える",t:"花の色の[[うつろひ]]ゆくこそ悲しけれ。",tr:"花の色が色あせていくのは悲しい。"},{m:"心変わりする",t:"男の心[[うつろひ]]て、通はずなりぬ。",tr:"男の心が変わって、通ってこなくなった。"}]},
+ {w:"うるはし", pos:"形", mean:"端正だ・きちんとしている・立派だ", expl:"整然として乱れのない美しさを表す語で、単なる『美しい』より秩序を強調する。", mne:"現代語『麗しい』の語源で、『整った美しさ』とイメージする。", senses:[{m:"端正だ・きちんとしている",t:"[[うるはしき]]装束にて参りたまふ。",tr:"きちんと整った装束で参上なさる。"},{m:"立派だ・美しい",t:"[[うるはしき]]御かたちにて、見る人目を驚かす。",tr:"立派で美しいお姿で、見る人の目を驚かす。"}]},
+ {w:"うれふ", pos:"動（下二段）", mean:"嘆く・心配する・（正式に）訴える", expl:"心を痛めて嘆いたり、時に朝廷などへ正式に訴え出ることを表す。", mne:"『憂ふ』＝『憂い』を『訴える・嘆く』、と漢字から覚える。", senses:[{m:"嘆く・心配する",t:"世のありさまを[[うれへ]]て、涙ぐむ。",tr:"世の中のありさまを嘆いて、涙ぐむ。"},{m:"（正式に）訴える",t:"国守の悪政を朝廷に[[うれふ]]。",tr:"国守の悪政を朝廷に訴える。"}]},
+ {w:"え（～ず）", pos:"副", mean:"～できない", expl:"下に打消を伴って不可能を表す呼応の副詞。", mne:"『え』を見たら文末に『ず・じ』などの打消を探す、とセットで覚える。", senses:[{m:"～できない（不可能）",t:"[[え]]行かず、立ち尽くしぬ。",tr:"行くことができず、立ち尽くした。"}]},
+ {w:"えうなし", pos:"形", mean:"必要ない・つまらない・役に立たない", expl:"『用（えう）無し』で、必要性がなく無駄であることを表す。", mne:"『用（えう）』が『無し』＝必要ない、と漢字構成で覚える。", senses:[{m:"必要ない・役に立たない",t:"[[えうなき]]ことに心を砕くな。",tr:"必要のないことに心を砕くな。"}]},
+ {w:"えならず", pos:"連語", mean:"なんとも言えないほどすばらしい", expl:"『得（え）＋ならず』で、言葉で言い表すことができないほどの称賛を表す。", mne:"『え（言え）』＋『ならず』＝言い表せない→最上級の褒め言葉と覚える。", senses:[{m:"なんとも言えないほどすばらしい",t:"[[えならぬ]]香りの漂ふ。",tr:"なんとも言えないほどすばらしい香りが漂う。"}]},
+ {w:"えんご（修辞法）", pos:"名（修辞法）", mean:"縁語（意味の関連する語を散りばめる技法）", expl:"和歌の中で、ある語と意味的に関連の深い語を意図的に配置する修辞技法。", mne:"『縁』のある語（えんご）をつなげる技法、と漢字の意味から直接覚える。", senses:[{m:"意味の関連する語を散りばめる技法",t:"「糸」「縒る」「切る」などを歌に詠み込むは、[[えんご]]なり。",tr:"「糸」「縒る」「切る」などを歌に詠み込むのは、縁語である。"}]},
+ {w:"えんなり", pos:"形動", mean:"艶やかだ・優美だ", expl:"『艶』の字を当て、なまめかしく美しい魅力を表す。", mne:"漢字『艶』のイメージそのまま『艶やか・優美』と覚える。", senses:[{m:"艶やかだ・優美だ",t:"[[えんなる]]姿にて、袖ひるがへす。",tr:"艶やかで優美な姿で、袖をひるがえす。"}]},
+ {w:"おきつ", pos:"動（下二段）", mean:"定める・取り決める", expl:"物事の方針や約束をあらかじめ決めておくことを表す。", mne:"『掟（おきて）』を『つ（作る）』→物事を定める、と関連づける。", senses:[{m:"定める・取り決める",t:"日ごろ[[おきて]]しことを違へず行ふ。",tr:"前から取り決めたことをたがえず行う。"}]},
+ {w:"おくる", pos:"動（下二段）", mean:"先立たれる・死に後れる／見送る", expl:"『後る』の字が示す通り、人に先立たれて自分だけ取り残される意味が重要。", mne:"『後（おく）れる』＝人より後に残される＝先立たれる、と語源から覚える。", senses:[{m:"先立たれる・死に後れる",t:"親に[[おくれ]]て、心細く世を過ごす。",tr:"親に先立たれて、心細く世を過ごす。"},{m:"見送る・送る",t:"客を門まで[[おくる]]。",tr:"客を門まで見送る。"}]},
+ {w:"おこす", pos:"動（下二段）", mean:"よこす・こちらへ送ってくる", expl:"相手が自分の方に向けて何かを送ってくる動作を表す。", mne:"『遣（や）る』（あちらへ送る）の対義語として『よこす』とセットで覚える。", senses:[{m:"よこす・こちらへ送ってくる",t:"都より文[[おこせ]]たり。",tr:"都から手紙をよこした。"}]},
+ {w:"おこなひ", pos:"名", mean:"勤行・仏道修行", expl:"仏道に関する日々の勤め・修行そのものを指す仏教用語。", mne:"『行い』が仏道における『お勤め』を指すと文脈から覚える。", senses:[{m:"勤行・仏道修行",t:"夜もすがら[[おこなひ]]して、経を読みたまふ。",tr:"一晩中勤行をして、経をお読みになる。"}]},
+]},
+{id:5, words:[
+ {w:"おとなし", pos:"形", mean:"大人びている・思慮分別がある", expl:"現代語『おとなしい（従順）』ではなく、『大人（おとな）』らしい成熟や分別を表す。", mne:"『大人（おとな）』＋『し』＝大人らしい、と漢字から直接覚える。", senses:[{m:"大人びている・思慮分別がある",t:"年のほどよりは[[おとなしく]]、物の道理を知りたり。",tr:"年の割には大人びていて、物の道理を知っている。"}]},
+ {w:"おとなふ", pos:"動（四段）", mean:"訪れる・音を立てる／便りをする", expl:"人を訪ねること、また物音を立てることを表す語で、『訪れ』の語源となった語。", mne:"『音（おと）』を立てて『訪ふ』＝訪れの気配、と語構成で覚える。", senses:[{m:"訪れる・訪問する",t:"夜更けて人の[[おとなふ]]音す。",tr:"夜更けに人が訪れる音がする。"},{m:"音を立てる・音がする",t:"風の[[おとなふ]]音、木の葉を鳴らす。",tr:"風が音を立てて、木の葉を鳴らす。"}]},
+ {w:"おどろおどろし", pos:"形", mean:"気味が悪い・仰々しい・大げさだ", expl:"不気味さや、物事の大げさで誇張された様子を表す。", mne:"『おどろ』を重ねた語で、驚くほど大げさ・不気味、と覚える。", senses:[{m:"気味が悪い・不気味だ",t:"[[おどろおどろしき]]物の声、夜ごとに聞こゆ。",tr:"気味の悪い物の声が、夜ごとに聞こえる。"},{m:"仰々しい・大げさだ",t:"[[おどろおどろしく]]祈りののしる。",tr:"仰々しく祈り騒ぐ。"}]},
+ {w:"おどろく・おどろかす", pos:"動", mean:"はっと気づく・目を覚ます／びっくりさせる・気づかせる", expl:"現代語の『驚く（びっくり）』よりも『はっと気づく』意味が古文では中心。", mne:"『驚く』はまず『ハッと目覚める・気づく』を第一義として思い出す。", senses:[{m:"はっと気づく・目を覚ます",t:"夜半にふと[[おどろき]]て、月を見る。",tr:"夜中にふと目を覚まして、月を見る。"},{m:"気づかせる・起こす",t:"人を[[おどろかし]]て、起こさせたまふ。",tr:"人に気づかせて、起こさせなさる。"}]},
+ {w:"おのづから", pos:"副", mean:"自然に・ひとりでに／たまたま", expl:"人為でなく自然のなりゆきで物事が起こる様子を表す。", mne:"『自（おの）づから』＝『自ずから』とほぼ同じ漢字で覚えやすい。", senses:[{m:"自然に・ひとりでに",t:"[[おのづから]]心の晴れゆく。",tr:"自然と心が晴れていく。"},{m:"たまたま・偶然",t:"[[おのづから]]昔の友に出で逢ひぬ。",tr:"たまたま昔の友に出会った。"}]},
+ {w:"おはす", pos:"動", mean:"いらっしゃる（尊敬）", expl:"『あり・をり・行く・来』の尊敬語として幅広く使われる最重要敬語動詞。", mne:"『おはす』は『いる・行く・来る』何でも『いらっしゃる』と訳す万能敬語。", senses:[{m:"いらっしゃる",t:"宮、御簾の内に[[おはします]]。",tr:"宮は、御簾の内にいらっしゃる。"}]},
+ {w:"おぼえ", pos:"名", mean:"評判・寵愛・記憶", expl:"人からどう思われているか、特に主君からの寵愛の程度を表すことが多い。", mne:"『覚え』＝『人からの覚え（評価）がよい』という現代語の言い回しから覚える。", senses:[{m:"評判・寵愛",t:"帝の御[[おぼえ]]めでたき人なり。",tr:"帝のご寵愛が厚い人である。"}]},
+ {w:"おぼす", pos:"動（四段）", mean:"お思いになる（尊敬）", expl:"『思ふ』の尊敬語で、貴人の心中を敬って表す最重要敬語動詞の一つ。", mne:"『思ふ』の尊敬語として『思ふ→おぼす』と対応させて覚える。", senses:[{m:"お思いになる",t:"帝、いと心苦しと[[おぼし]]て、使ひを遣はす。",tr:"帝は、たいそう心苦しいとお思いになって、使者を遣わす。"}]},
+ {w:"おぼつかなし", pos:"形", mean:"はっきりしない・気がかりだ・待ち遠しい", expl:"物事の正体や先行きが不明瞭で、不安や焦れったさを感じる様子を表す。", mne:"現代語『おぼつかない（足取りがあやふや）』のイメージから『不明瞭・不安』を覚える。", senses:[{m:"はっきりしない・ぼんやりしている",t:"月影[[おぼつかなく]]、道も見えず。",tr:"月の光がぼんやりして、道も見えない。"},{m:"気がかりだ・待ち遠しい",t:"便りの絶えて久しければ、[[おぼつかなく]]思ふ。",tr:"便りが長く絶えているので、気がかりに思う。"}]},
+ {w:"おほとのごもる", pos:"動", mean:"お休みになる（尊敬）", expl:"貴人が眠る・休むことを表す最高敬語の一つ。", mne:"『大殿（おほとの）ごもる』＝殿でお休みになる、と漢字イメージで覚える。", senses:[{m:"お休みになる",t:"夜更けて、帝[[おほとのごもり]]ぬ。",tr:"夜が更けて、帝はお休みになった。"}]},
+ {w:"おぼゆ", pos:"動（下二段）", mean:"思われる・感じられる・似る", expl:"自発の意味が中心で、自然にそう感じられる・思い出されることを表す。", mne:"『おぼゆ』＝『覚（おぼ）ゆ』＝自然と心に浮かぶ、と自発の意味で覚える。", senses:[{m:"思われる・感じられる",t:"何となく心細く[[おぼゆ]]。",tr:"なんとなく心細く思われる。"},{m:"思い出される",t:"昔のことの[[おぼえ]]て、涙ぐむ。",tr:"昔のことが思い出されて、涙ぐむ。"},{m:"似る",t:"母君に[[おぼえ]]たる御かたちなり。",tr:"母君に似ているお姿である。"}]},
+ {w:"おもしろし", pos:"形", mean:"趣がある・風情がある・楽しい", expl:"現代語の『笑える』ではなく、景色や物事に心惹かれる趣深さを表す。", mne:"『面（おも）＋白し』＝目の前がぱっと明るく感じる趣深さ、とイメージする。", senses:[{m:"趣がある・風情がある",t:"雪の降る夜の庭、いと[[おもしろし]]。",tr:"雪の降る夜の庭は、とても趣がある。"},{m:"楽しい・愉快だ",t:"管弦の遊びに人々集ひ、[[おもしろく]]夜を明かす。",tr:"管弦の遊びに人々が集まり、楽しく夜を明かす。"}]},
+ {w:"おもておこし", pos:"名", mean:"面目が立つこと・名誉を得ること", expl:"体面・評判が良い方向に立つことを表す。", mne:"『面（顔）』を『起こす』＝顔が立つ＝面目が立つ、と覚える。", senses:[{m:"面目が立つこと・名誉",t:"かかる出世は、親の[[おもておこし]]なり。",tr:"このような出世は、親の面目が立つことだ。"}]},
+ {w:"おもてぶせ", pos:"名", mean:"面目を失うこと・恥をかくこと", expl:"『おもておこし』の対義語で、体面をつぶされることを表す。", mne:"『面（顔）』を『伏せる』＝顔向けできない＝恥、と対義語セットで覚える。", senses:[{m:"面目を失うこと・恥",t:"人の前にて咎めらるるは、[[おもてぶせ]]なり。",tr:"人前で咎められるのは、面目を失うことだ。"}]},
+]},
+{id:6, words:[
+ {w:"おろかなり", pos:"形動", mean:"いいかげんだ・おろそかだ", expl:"現代語『愚か（ばか）』ではなく、物事への扱いが不十分・おろそかなことを表す。『～もおろかなり』で『～では言い尽くせない』の意にもなる。", mne:"『疎か（おろそか）』と同源、と考えて『扱いが不十分』を覚える。", senses:[{m:"いいかげんだ・おろそかだ",t:"世話を[[おろかに]]して、病を重くしぬ。",tr:"世話をおろそかにして、病気を重くしてしまった。"},{m:"（～も）言い尽くせない",t:"うれしさは言葉にも[[おろかなり]]。",tr:"うれしさは言葉でも言い尽くせない。"}]},
+ {w:"かぎり", pos:"名", mean:"限度・限界・最期（死）", expl:"物事の限界点を表し、特に人の命の終わり＝『死』を婉曲に指すことがある。", mne:"『限り』が『命の限り』＝『最期』を意味する用法に注意して覚える。", senses:[{m:"限度・限り",t:"命の[[かぎり]]思ひを尽くす。",tr:"命の限り思いを尽くす。"},{m:"最期（死）",t:"今は[[かぎり]]と見えければ、人々泣き騒ぐ。",tr:"今はもう最期と見えたので、人々は泣き騒ぐ。"}]},
+ {w:"かくる", pos:"動（下二段）", mean:"隠れる・（貴人が）お亡くなりになる", expl:"姿を隠すことから転じて、高貴な人の死を婉曲に表す表現になる。", mne:"『隠（かく）る』＝この世から姿を隠す＝亡くなる、と婉曲表現として覚える。", senses:[{m:"隠れる",t:"月の雲に[[かくれ]]て、あたりも暗し。",tr:"月が雲に隠れて、あたりも暗い。"},{m:"（貴人が）お亡くなりになる",t:"帝、昨夜[[かくれ]]させたまひぬ。",tr:"帝は昨夜お亡くなりになった。"}]},
+ {w:"かけことば（修辞法）", pos:"名（修辞法）", mean:"掛詞（同音の語に二つの意味を持たせる技法）", expl:"一つの音に複数の意味を掛けて和歌の表現を豊かにする修辞技法。", mne:"『松（まつ）』に『待つ』を掛ける、のような例で漢字通りに覚える。", senses:[{m:"同音で二つの意味を持たせる技法",t:"「ながめ」に「眺め」と「長雨」とを持たすは、[[かけことば]]なり。",tr:"「ながめ」に「眺め」と「長雨」の二つの意味を持たせるのは、掛詞である。"}]},
+ {w:"かしこし", pos:"形", mean:"恐れ多い・優れている・利口だ", expl:"神仏や貴人に対する畏れ多さと、能力の優秀さの両方を表す。", mne:"現代語『賢い』に加え、『恐れ多い』の意味もセットで覚える。", senses:[{m:"恐れ多い・もったいない",t:"[[かしこき]]仰せ言を、謹みて承る。",tr:"恐れ多いお言葉を、謹んでお受けする。"},{m:"すぐれている・賢い",t:"[[かしこき]]人の、世に隠れ居たり。",tr:"賢い人が、世に隠れ住んでいた。"}]},
+ {w:"かしづく", pos:"動（四段）", mean:"大切に育てる・世話をする", expl:"特に親が子（多くは娘）を大切に養育する様子を表す頻出語。", mne:"『傅（かしづ）く』＝かしずいて大切に世話する、とそのまま覚える。", senses:[{m:"大切に育てる・世話をする",t:"親、一人の姫君を[[かしづき]]たまふ。",tr:"親は、ひとりの姫君を大切に育てなさる。"}]},
+ {w:"かたくななり", pos:"形動", mean:"頑固だ・偏屈だ・無風流だ", expl:"考えが固く融通が利かない、また風流を解さない様子を表す。", mne:"現代語『頑（かたく）な』とほぼ同じ、『頑固』をそのまま覚える。", senses:[{m:"頑固だ・偏屈だ",t:"年老いて[[かたくななる]]心になりぬ。",tr:"年を取って頑固な心になった。"},{m:"無風流だ・教養がない",t:"花の心を知らぬ[[かたくななる]]人。",tr:"花の風情を理解しない無風流な人。"}]},
+ {w:"かたし", pos:"形", mean:"難しい・めったにない", expl:"『難し』の字を当て、実現困難・希少であることを表す。", mne:"『有り難し』の『難し』と同源、『めったにない』とつなげて覚える。", senses:[{m:"難しい・困難だ",t:"心を変へざるは、いと[[かたき]]ことなり。",tr:"心を変えないのは、たいそう難しいことだ。"}]},
+ {w:"かたじけなし", pos:"形", mean:"もったいない・ありがたい・恐れ多い", expl:"相手の厚意や身分の高さに対して、身に余るほどの感謝・畏れを表す。", mne:"現代語『かたじけない』とほぼ同じ意味なので直感で覚えられる。", senses:[{m:"もったいない・恐れ多い",t:"帝の[[かたじけなき]]仰せを承る。",tr:"帝のもったいないお言葉を承る。"},{m:"ありがたい・感謝している",t:"情けある御心ざし、[[かたじけなく]]思ひたまふ。",tr:"ご厚情を、ありがたく思います。"}]},
+ {w:"かたたがへ", pos:"名", mean:"方違へ（凶の方角を避けて前夜別の場所に泊まる風習）", expl:"陰陽道に基づき、目的地の方角が悪い場合に一度別方向へ移動してから向かう習慣。", mne:"『方（かた）』を『違（たが）へ』る＝方角を変える、と漢字通りに覚える。", senses:[{m:"凶の方角を避けて別の所に泊まること",t:"内裏より出でて、[[かたたがへ]]にあなたの家に泊まる。",tr:"宮中から出て、方違えのためにあちらの家に泊まる。"}]},
+ {w:"かたち", pos:"名", mean:"容貌・容姿", expl:"現代語の『形』よりも、人の顔立ち・見た目の美しさを指すことが多い。", mne:"『かたち』は『姿かたち』の意で、まず『容貌』を思い出す。", senses:[{m:"容貌・容姿",t:"[[かたち]]すぐれたる女房なり。",tr:"容貌のすぐれた女房である。"}]},
+ {w:"かたはらいたし", pos:"形", mean:"そばで見ていて気の毒だ・きまりが悪い・苦々しい", expl:"『傍ら（かたわら）』＋『痛し』で、そばで見ている側が感じる気まずさを表す。", mne:"『傍らが痛い』＝横で見ていて心が痛む＝気の毒・きまり悪い、と覚える。", senses:[{m:"（そばで見て）気の毒だ",t:"人の恥づかしめらるるを見るも、[[かたはらいたし]]。",tr:"人が恥をかかされるのを見るのも、気の毒でいたたまれない。"},{m:"きまりが悪い・苦々しい",t:"下手なる歌を人に聞かするは、[[かたはらいたし]]。",tr:"下手な歌を人に聞かせるのは、きまりが悪い。"}]},
+ {w:"かたほなり", pos:"形動", mean:"未熟だ・不完全だ", expl:"『片（かた）＋秀（ほ）なり』で、まだ十分に整っていない様子を表す。", mne:"『片』（不完全）＋『秀』で『まだ半人前』とイメージする。", senses:[{m:"未熟だ・不完全だ",t:"[[かたほなる]]手を人に見するは恥づかし。",tr:"未熟な筆跡を人に見せるのは恥ずかしい。"}]},
+ {w:"かたみに", pos:"副", mean:"互いに", expl:"双方が同じように何かをし合う様子を表す副詞。", mne:"『互（かたみ）に』は現代語『互いに』とほぼ同形で覚えやすい。", senses:[{m:"互いに",t:"[[かたみに]]文を取り交はして、心を慰む。",tr:"互いに手紙を取り交わして、心を慰める。"}]},
+ {w:"かたらふ", pos:"動（四段）", mean:"親しく語り合う・言い寄る・仲間に引き入れる", expl:"単なる会話でなく、深く語り合う、または恋愛的に言い寄る意味を持つ。", mne:"『語る』の継続形『語らふ』＝繰り返し語り合う仲＝親密な関係、と覚える。", senses:[{m:"親しく語り合う",t:"友と夜もすがら[[かたらひ]]て、別れを惜しむ。",tr:"友と一晩中語り合って、別れを惜しむ。"},{m:"言い寄る・契りを結ぶ",t:"男、女を[[かたらひ]]て、ついに忍び入る。",tr:"男が女に言い寄って、ついに忍び込む。"},{m:"仲間に引き入れる",t:"勢ひある者を[[かたらひ]]て、味方とす。",tr:"有力な者を仲間に引き入れて、味方にする。"}]},
+]},
+{id:7, words:[
+ {w:"かづく", pos:"動", mean:"（水を）かぶる／褒美を頭からかぶせる・与える", expl:"四段では『かぶる』、下二段では『褒美を与える』の意味になる。", mne:"『被（かづ）く』＝頭に被せる→自分が被れば『かぶる』、人に被せれば『与える』。", senses:[{m:"（頭に）かぶる",t:"頭に衣を[[かづき]]て、顔を隠す。",tr:"頭に衣をかぶって、顔を隠す。"},{m:"褒美を与える",t:"舞ひたる人に、衣を[[かづく]]。",tr:"舞った人に、衣を褒美として与える。"}]},
+ {w:"かどかどし", pos:"形", mean:"才気がある・角が立つほど鋭い", expl:"知的で鋭さのある様子を表し、良い意味での才気煥発を指すことが多い。", mne:"『角（かど）』が立つほど鋭い才気、と漢字イメージで覚える。", senses:[{m:"才気がある・利発だ",t:"[[かどかどしき]]人にて、ものの道理をよく知る。",tr:"才気のある人で、物の道理をよく心得ている。"}]},
+ {w:"かなし", pos:"形", mean:"いとしい・かわいい／悲しい", expl:"『愛し』と『悲し』の両方の漢字が当てられ、強い愛情と強い悲哀の両方を表す。", mne:"愛おしさが極まると悲しさにも通じる、と両義を一つの感情としてまとめて覚える。", senses:[{m:"いとしい・かわいい",t:"子を[[かなし]]と思ふ親の心。",tr:"子をいとしいと思う親の心。"},{m:"悲しい",t:"別れの[[かなしく]]て、涙の止まらず。",tr:"別れが悲しくて、涙が止まらない。"}]},
+ {w:"かなしうす", pos:"動", mean:"かわいがる", expl:"『かなし（いとしい）』が動詞化した語で、愛情を注ぐ行為を表す。", mne:"『かなし』の動詞形と考え、『いとしく思って可愛がる』と覚える。", senses:[{m:"かわいがる",t:"祖母、孫を[[かなしうし]]たまふ。",tr:"祖母は孫をかわいがりなさる。"}]},
+ {w:"かる", pos:"動（下二段）", mean:"離れる・疎遠になる・涸れる", expl:"人間関係が疎遠になることと、水などが涸れることの両方を表す。", mne:"『離（か）る』＝離れる、『涸（か）る』＝涸れる、と同音でセットに覚える。", senses:[{m:"離れる・疎遠になる",t:"訪ふ人もなく、人目も[[かれ]]ぬ。",tr:"訪れる人もなく、人の出入りも遠ざかった。"},{m:"枯れる・涸れる",t:"冬になりて、草も[[かれ]]ぬ。",tr:"冬になって、草も枯れた。"}]},
+ {w:"かへり（かへし）", pos:"名", mean:"返歌・返事", expl:"和歌のやり取りで、相手の歌に対して返す歌や返答を指す。", mne:"『返す』の名詞形と考えて『返歌・返事』と直感的に覚える。", senses:[{m:"返歌・返事",t:"[[かへし]]に、一首詠みて送りたまふ。",tr:"返事として、一首詠んでお送りになる。"}]},
+ {w:"からし", pos:"形", mean:"つらい・厳しい・（味が）からい", expl:"精神的なつらさや、対応の厳しさを表す形容詞。", mne:"現代語『辛い（からい／つらい）』の両方の読みが残る語と意識する。", senses:[{m:"つらい・ひどい",t:"[[からき]]目を見て、泣く泣く帰りぬ。",tr:"つらい目にあって、泣く泣く帰った。"},{m:"厳しい",t:"師の[[からき]]教へに、心を改む。",tr:"師の厳しい教えに、心を改める。"},{m:"（味が）からい",t:"この菜は[[からく]]て、食ひがたし。",tr:"この菜は辛くて、食べにくい。"}]},
+ {w:"きこゆ", pos:"動（下二段）", mean:"申し上げる（謙譲）／聞こえる・評判になる", expl:"謙譲の補助動詞として非常によく使われ、また『evaluation（評判）』の意味でも使われる。", mne:"『聞こゆ』＝相手に聞こえるように申し上げる、と謙譲の由来を覚える。", senses:[{m:"申し上げる（謙譲）",t:"宮に事の次第を[[きこゆ]]。",tr:"宮に事の次第を申し上げる。"},{m:"聞こえる",t:"遠き琴の音の、風に乗りて[[きこゆ]]。",tr:"遠くの琴の音が、風に乗って聞こえる。"},{m:"評判になる・名高い",t:"世に[[きこえ]]たる歌人なり。",tr:"世に名高い歌人である。"}]},
+ {w:"きは", pos:"名", mean:"身分・程度・端（きわ）", expl:"人の身分階級や物事の程度を表す語で、境目・際（きわ）の意味も持つ。", mne:"現代語『際（きわ）』と同語源、『程度・境目』の意味を軸に覚える。", senses:[{m:"身分・家柄",t:"[[きは]]ことなる人の、世に出でたまふ。",tr:"身分の格別に高い人が、世に出ておいでになる。"},{m:"程度・限り",t:"悲しさは[[きは]]もなし。",tr:"悲しさは際限がない。"},{m:"端・そば",t:"山の[[きは]]に月かかる。",tr:"山の端に月がかかる。"}]},
+ {w:"きよらなり", pos:"形動", mean:"気品があって美しい（最上級の美）", expl:"『きよげなり』よりもさらに上位の、輝くばかりの気品ある美しさを表す。", mne:"『清ら』は美の最上位ランクと覚え、『きよげなり』との格差を意識する。", senses:[{m:"気品があって美しい",t:"[[きよらなる]]御かたちにて、光るやうなり。",tr:"この上なく気品高く美しいお姿で、光り輝くようである。"}]},
+ {w:"ぐす", pos:"動（サ変）", mean:"伴う・引き連れる・一緒にいる", expl:"『具す』の字を当て、誰かを伴って行動する様子を表す。", mne:"『具（ぐ）す』＝道具のように一緒に備え持つ→『伴う』と覚える。", senses:[{m:"伴う・引き連れる",t:"供人を[[ぐし]]て、野に出でたまふ。",tr:"供の者を引き連れて、野にお出になる。"}]},
+ {w:"くらうど", pos:"名", mean:"蔵人（天皇に近侍し文書や儀式を扱う役人）", expl:"天皇の側近として文書・儀式・雑務を扱う、宮中でも重んじられた官職を指す。", mne:"『蔵（くら）』の『人（うど）』＝宮中の文書を扱う役人、と漢字で覚える。", senses:[{m:"天皇に仕え文書や儀式を扱う役人",t:"[[くらうど]]、勅旨を承りて参る。",tr:"蔵人が、天皇のお言葉を承って参上する。"}]},
+ {w:"けし", pos:"形", mean:"様子が変だ・普通でない", expl:"『怪し』に通じ、何かいつもと違う異変を感じさせる様子を表す。", mne:"『けしからず』の元になる語と考え、『変だ・異常だ』とセットで覚える。", senses:[{m:"様子が変だ・異様だ",t:"この家の物音、いと[[けし]]とて、人々恐れぬ。",tr:"この家の物音は、とても異様だと言って、人々は恐れた。"}]},
+ {w:"けしからず", pos:"連語", mean:"異様だ・普通でない・よくない", expl:"『け（気）し＋からず』で、現代語『けしからん』のニュアンスに近い非難を表す。", mne:"現代語『けしからん』とほぼ同じ使い方なので直感で覚えやすい。", senses:[{m:"異様だ・よくない",t:"[[けしからぬ]]振る舞ひをして、人に笑はる。",tr:"よくない振る舞いをして、人に笑われる。"}]},
+ {w:"けしき", pos:"名", mean:"様子・機嫌・態度", expl:"現代語『景色』ではなく、人の表情や態度、その場の雰囲気を指すことが多い。", mne:"『気色（けしき）』＝『気（心）の色（現れ）』＝様子・機嫌、と漢字から覚える。", senses:[{m:"様子・ありさま",t:"空の[[けしき]]、ただならず。",tr:"空の様子が尋常でない。"},{m:"機嫌・態度",t:"主の[[けしき]]悪しければ、人々も控へたり。",tr:"主の機嫌が悪いので、人々も控えている。"}]},
+]},
+{id:8, words:[
+ {w:"けしきばかり", pos:"連語", mean:"形ばかり・ほんの少し", expl:"『けしき（様子）』が『ばかり（だけ）』であることから、実質を伴わない形式的な様子を表す。", mne:"『様子だけ』＝中身が伴わない『形ばかり』と覚える。", senses:[{m:"形ばかり・ほんの少し",t:"[[けしきばかり]]の饗応を、人々喜びぬ。",tr:"形ばかりのもてなしを、人々は喜んだ。"}]},
+ {w:"げに", pos:"副", mean:"なるほど・本当に", expl:"人の言うことや評判を実際に確かめて納得する気持ちを表す副詞。", mne:"『実（げ）に』＝『実際に』確かにそうだ、と漢字から覚える。", senses:[{m:"なるほど・本当に",t:"[[げに]]さもありぬべし。",tr:"なるほど、確かにそうであろう。"}]},
+ {w:"けはひ", pos:"名", mean:"気配・様子", expl:"目には見えないが感じ取れる雰囲気・存在感を表す。", mne:"現代語『気配（けはい）』とほぼ同じ発音・意味で覚えやすい。", senses:[{m:"気配",t:"人の[[けはひ]]して、門のほとりに立つ。",tr:"人の気配がして、門のあたりに立つ。"},{m:"様子・雰囲気",t:"あたりの[[けはひ]]、いと心細し。",tr:"あたりの様子は、たいそう心細い。"}]},
+ {w:"こうず", pos:"動（サ変）", mean:"疲れる・困る・弱る", expl:"『困ず』の字を当て、心身が疲れ果てる様子を表す。", mne:"『困（こう）ず』＝『困る』の古い形、と漢字から覚える。", senses:[{m:"疲れる・困り果てる",t:"道を歩き[[こうじ]]て、木の下に臥す。",tr:"道を歩き疲れて、木の下に横になる。"}]},
+ {w:"ここら（ここだ、そこら）", pos:"副", mean:"たくさん・非常に", expl:"数量や程度の多さを表す副詞で、現代語の『あたり』の意味ではない点に注意。", mne:"『ここら』は場所でなく『数量の多さ』を表すと意識して覚える。", senses:[{m:"たくさん・非常に",t:"[[ここら]]の人々集ひて、いと騒がし。",tr:"たくさんの人々が集まって、とても騒がしい。"}]},
+ {w:"こころぐるし", pos:"形", mean:"気の毒だ・心配だ", expl:"相手の状況を見て心が痛む、思いやりの気持ちを表す。", mne:"『心』が『苦（ぐる）し』＝心が痛む＝気の毒、と漢字構成で覚える。", senses:[{m:"気の毒だ・心配だ",t:"病に臥したる母を見て、[[こころぐるし]]と思ふ。",tr:"病に臥している母を見て、気の毒で心配だと思う。"}]},
+ {w:"こころづくし", pos:"名", mean:"あれこれと物思いをすること", expl:"心を尽くして悩む・思い悩む状態を表す名詞。", mne:"『心を尽くす』ほど思い悩む、と語構成から覚える。", senses:[{m:"あれこれ物思いをすること",t:"秋は[[こころづくし]]の季節なり。",tr:"秋はあれこれと物思いをする季節である。"}]},
+ {w:"こころなし", pos:"形", mean:"思いやりがない・情趣を解さない", expl:"人情や風流を理解しない、無風流・無情な様子を表す。", mne:"『心が無い』＝思いやりも風流心も無い、とそのまま覚える。", senses:[{m:"情趣を解さない・風流心がない",t:"花を見ても感ぜぬ[[こころなき]]人。",tr:"花を見ても感動しない、情趣を解さない人。"},{m:"思いやりがない",t:"[[こころなく]]言ひ放ちて、人を傷つけぬ。",tr:"思いやりもなく言い放って、人を傷つけた。"}]},
+ {w:"こころにくし", pos:"形", mean:"奥ゆかしい・上品で心ひかれる", expl:"現代語『心憎い（皮肉）』とは異なり、好ましい奥ゆかしさを表すプラス評価語。", mne:"『心』が『憎い』ほど（強く）ひかれる＝奥ゆかしい、と覚える。", senses:[{m:"奥ゆかしい・上品で心ひかれる",t:"[[こころにくき]]心ばへの人なり。",tr:"奥ゆかしい心づかいの人である。"}]},
+ {w:"こころもとなし", pos:"形", mean:"待ち遠しい・気がかりだ・はっきりしない", expl:"心のよりどころが定まらず、じれったく不安な気持ちを表す。", mne:"『心の元（もと）』が『無し』＝心が落ち着かない＝待ち遠しい、と覚える。", senses:[{m:"待ち遠しい・じれったい",t:"いつ来たまふと、[[こころもとなく]]待つ。",tr:"いつおいでになるかと、待ち遠しく待つ。"},{m:"気がかりだ・不安だ",t:"子の行方[[こころもとなし]]。",tr:"子の行方が気がかりだ。"},{m:"はっきりしない・ぼんやりしている",t:"[[こころもとなき]]月の影に、道も見えず。",tr:"ぼんやりとした月の光で、道もはっきり見えない。"}]},
+ {w:"こちたし", pos:"形", mean:"うるさいほど多い・大げさだ", expl:"物事の量や評判があまりに多く、煩わしく感じられる様子を表す。", mne:"『言（こと）＋甚（いた）し』＝言葉が甚だしい＝うるさいほど多い、と覚える。", senses:[{m:"うるさいほど多い",t:"世のうはさ[[こちたく]]立ちぬ。",tr:"世間のうわさがうるさいほど多く立った。"},{m:"大げさだ・仰々しい",t:"[[こちたき]]ほどに言葉を飾る。",tr:"大げさなほどに言葉を飾る。"}]},
+ {w:"こと（事・異・言）", pos:"名", mean:"事柄／別のこと／言葉", expl:"同音で『事・異（こと）・言』の三つの意味を持つため文脈判断が必要な多義語。", mne:"『こと』は『事・異・言』の三役をこなす、と三つまとめて覚える。", senses:[{m:"事柄・出来事",t:"あまたの[[こと]]ども起こりぬ。",tr:"たくさんの出来事が起こった。"},{m:"別の・ほかの",t:"[[こと]]人には見せじ。",tr:"ほかの人には見せまい。"},{m:"言葉",t:"御[[こと]]を承りて、直ちに参りぬ。",tr:"お言葉を承って、すぐに参上した。"}]},
+ {w:"ことごとし", pos:"形", mean:"仰々しい・大げさだ", expl:"必要以上に大がかりで、わざとらしい様子を表す。", mne:"『事々し』＝『事』が重なるほど大げさ、と語感で覚える。", senses:[{m:"仰々しい・大げさだ",t:"[[ことごとしき]]行列にて、都へ入る。",tr:"仰々しい行列で、都へ入る。"}]},
+ {w:"ことわり", pos:"名", mean:"道理・理由", expl:"物事の理にかなった筋道を指す語で、『ことわりなり』で『もっともだ』の意にもなる。", mne:"現代語『理（ことわり）』とほぼ同じ意味なので直感的に覚えられる。", senses:[{m:"道理・筋道",t:"世の[[ことわり]]を知る人なり。",tr:"世の道理を知っている人である。"},{m:"もっともなこと・当然だ",t:"泣きたまふも[[ことわり]]なり。",tr:"お泣きになるのももっともなことである。"}]},
+ {w:"さうざうし", pos:"形", mean:"物足りない・心寂しい", expl:"あるべきものが欠けているような、満たされない寂しさを表す。", mne:"『索々（さうざう）し』＝何か索然として物足りない、と語感で覚える。", senses:[{m:"物足りない・心寂しい",t:"友の去りて、いと[[さうざうし]]。",tr:"友が去って、とても物足りなく寂しい。"}]},
+]},
+{id:9, words:[
+ {w:"ざえ", pos:"名", mean:"学才・技能（特に漢学の才）", expl:"『才（ざえ）』の字を当て、主に学問・漢籍の才能を指す。", mne:"『才（ざえ）』は『才能』の古い読み方、と漢字そのままで覚える。", senses:[{m:"学才・技能",t:"[[ざえ]]ある人なれば、世に用ゐらる。",tr:"学才のある人なので、世に重んじられる。"}]},
+ {w:"さかし", pos:"形", mean:"利口だ・賢い（時に生意気だ）", expl:"知的で優れている様子を表すが、時に『でしゃばりだ』という否定的ニュアンスも持つ。", mne:"『賢し』＝賢い、ただし『さかしら』は『利口ぶる』とマイナスにもなると覚える。", senses:[{m:"賢い・利口だ",t:"[[さかしき]]人の、世を治む。",tr:"賢い人が、世を治める。"},{m:"利口ぶる・生意気だ",t:"[[さかしく]]人の事に口出しす。",tr:"利口ぶって、人のことに口出しする。"}]},
+ {w:"さがなし", pos:"形", mean:"性質が悪い・いたずらだ", expl:"『性（さが）』＋『無し』で、生まれつきの性質が良くない様子を表す。", mne:"『性（さが）』が『無し』＝良い性質が無い＝性悪、と語構成で覚える。", senses:[{m:"性質が悪い・いたずらだ",t:"[[さがなき]]童部ども、犬を追ふ。",tr:"いたずらな子どもたちが、犬を追う。"}]},
+ {w:"さすがなり", pos:"形動", mean:"そうはいってもやはり・そうかといって", expl:"前の事情を認めつつも、それだけでは割り切れない気持ちを表す。", mne:"現代語『さすがに（そうは言っても）』とほぼ同じ感覚で使える。", senses:[{m:"そうはいってもやはり",t:"恨めしけれど、[[さすがに]]捨てがたし。",tr:"恨めしいけれど、そうはいってもやはり見捨てがたい。"}]},
+ {w:"さながら", pos:"副", mean:"そのまま・すべて・まるで", expl:"状態がそのまま変わらないこと、また全部・すっかりの意を表し、比喩的に『まるで』の意にもなる。", mne:"現代語『さながら（まるで）』ともつながる語、『そのまま・すっかり』を軸に覚える。", senses:[{m:"そのまま",t:"昔の[[さながら]]にて残れり。",tr:"昔のままで残っている。"},{m:"すべて・残らず",t:"家の財を[[さながら]]失ひぬ。",tr:"家の財産をすべて失った。"},{m:"まるで・ちょうど",t:"[[さながら]]絵に描きたるやうなり。",tr:"まるで絵に描いたようである。"}]},
+ {w:"さぶらふ", pos:"動", mean:"お仕えする（謙譲）／あります・おります（丁寧）", expl:"貴人のそばに控える意味から、謙譲語・丁寧語の両方に発達した重要敬語動詞。", mne:"『侍（さぶら）ふ』＝『侍る』＝そばに控える、と漢字から覚える。", senses:[{m:"お仕えする・そばに控える",t:"御前に[[さぶらふ]]人々、皆あはれがる。",tr:"御前にお仕えする人々は、皆しみじみと感動する。"},{m:"あります・ございます（丁寧）",t:"かく申すは、いかなる人にて[[さぶらふ]]ぞ。",tr:"こうおっしゃるのは、どのような人でございますか。"}]},
+ {w:"さまをかふ（かたちをかふ）", pos:"連語", mean:"出家する（姿・形を変える）", expl:"『形（かたち）をかふ』とも言い、俗世の姿から僧侶の姿へ変わることを表す婉曲表現。", mne:"『様（姿）を変える』＝俗世を離れて僧の姿になる＝出家、と婉曲表現として覚える。", senses:[{m:"出家する",t:"世を厭ひて、[[さまをかへ]]たまふ。",tr:"世を厭って、出家なさる。"}]},
+ {w:"さらなり", pos:"形動", mean:"言うまでもない", expl:"『言ふもさらなり』の形で、当然すぎてあえて言う必要もないことを表す。", mne:"『更なり』＝今さら言うまでもない、とそのまま覚える。", senses:[{m:"言うまでもない",t:"月のころは[[さらなり]]。",tr:"月の出ている頃は言うまでもない。",s:"枕草子（第一段・夏）"}]},
+ {w:"さらに（～ず）", pos:"副", mean:"まったく～ない", expl:"下に打消を伴って、完全な否定を強調する呼応の副詞。", mne:"『さらに』を見たら文末に『ず』を探す、と呼応表現としてセットで覚える。", senses:[{m:"まったく～ない",t:"かかる事は、[[さらに]]聞かず。",tr:"このようなことは、まったく聞かない。"}]},
+ {w:"さらぬわかれ", pos:"連語", mean:"避けられない別れ（＝死別）", expl:"『避（さ）らぬ別れ』で、人の力では避けられない永遠の別れ、死別を婉曲に表す。", mne:"『避（さ）らぬ』＝避けられない＋『別れ』＝死別、と婉曲表現で覚える。", senses:[{m:"避けられない別れ（死別）",t:"[[さらぬわかれ]]のなくもがな、と思ふ。",tr:"避けられない別れ（死別）がなければよいのに、と思う。"}]},
+ {w:"さるは", pos:"接続", mean:"そうはいうものの・実は", expl:"前の内容を受けつつ、それに反する事実や補足を述べる接続語。", mne:"『さる（そうである）』＋『は』＝そうであるが実は、と逆接的補足として覚える。", senses:[{m:"実は・そうはいうものの",t:"[[さるは]]、心の内にはいたく恨めしく思ふなり。",tr:"実は、心の内ではたいそう恨めしく思っているのだ。"}]},
+ {w:"しのぶ", pos:"動（四段・上二段）", mean:"我慢する・人目を避けて隠れる／恋しく思う", expl:"『忍ぶ（我慢・隠れる）』と『偲ぶ（懐かしむ）』の両方の意味を持つ多義語。", mne:"『忍ぶ』＝隠れて耐える、『偲ぶ』＝懐かしく思う、と二つの漢字で覚える。", senses:[{m:"我慢する・こらえる",t:"涙を[[しのび]]て、笑ひて見す。",tr:"涙をこらえて、笑って見せる。"},{m:"人目を避ける・隠れる",t:"人に知られじと、[[しのび]]て通ひたまふ。",tr:"人に知られまいと、こっそり通いなさる。"},{m:"恋しく思う・懐かしむ",t:"昔を[[しのぶ]]心ぞ深き。",tr:"昔を懐かしむ心が深い。"}]},
+ {w:"じょことば（修辞法）", pos:"名（修辞法）", mean:"序詞（ある語句を導くための比喩的な前置き表現）", expl:"和歌で、特定の語を引き出すために置かれる比較的長めの修飾表現。", mne:"『序（じょ）』の『言葉』＝本題を導く前置きの言葉、と漢字通りに覚える。", senses:[{m:"ある語句を導く前置きの表現",t:"ある語を導く長めの前置きを、[[じょことば]]といふ。",tr:"ある語を導き出す長めの前置きを、序詞という。"}]},
+ {w:"しる（知る・領る・痴る）", pos:"動（四段）", mean:"知る／治める・領有する", expl:"単なる認知の『知る』のほか、土地や国を『治める・領有する』の意味も持つ。", mne:"『領（し）る』＝土地を自分のものとして『治める』、と派生義を覚える。", senses:[{m:"知る・理解する",t:"世の習ひを[[しる]]人なり。",tr:"世の習わしを知っている人である。"},{m:"治める・領有する",t:"国を[[しろしめす]]御門。",tr:"国をお治めになる帝。"}]},
+ {w:"すさまじ", pos:"形", mean:"興ざめだ・殺風景だ", expl:"期待や情趣に反して、冷めた気持ちにさせる様子を表す。", mne:"現代語『すさまじい（激しい）』とは違い、まず『興ざめ』を思い出す。", senses:[{m:"興ざめだ・つまらない",t:"[[すさまじき]]もの、昼ほゆる犬。",tr:"興ざめなもの、それは昼に吠える犬。",s:"枕草子（すさまじきもの）"},{m:"殺風景だ・荒涼としている",t:"冬枯れの野辺の[[すさまじく]]見ゆるころ。",tr:"冬枯れの野辺が殺風景に見える頃。"}]},
+]},
+{id:10, words:[
+ {w:"すずろなり", pos:"形動", mean:"なんとなく・むやみに・関係なく", expl:"はっきりした理由もなく物事が起こる、そぞろな様子を表す。", mne:"現代語『そぞろ』の語源で、『なんとなく・むやみに』と覚える。", senses:[{m:"なんとなく・わけもなく",t:"[[すずろに]]悲しくなりて、涙ぐむ。",tr:"なんとなく悲しくなって、涙ぐむ。"},{m:"関係ない・思いがけない",t:"[[すずろなる]]ことに心を煩はす。",tr:"関係のないことに心を悩ませる。"}]},
+ {w:"せ", pos:"名", mean:"夫・兄・恋人（女性から見た親しい男性）", expl:"『背』『兄』『夫』の字を当て、女性が夫・兄弟・恋人など親しい男性を呼ぶ語。対義語は『いも（妹）』。", mne:"『せ（背）』＝女性から見た親しい男性、『いも（妹）』＝男性から見た親しい女性、と対で覚える。", senses:[{m:"夫・恋人（女性から見た男性）",t:"[[せ]]の君、旅より帰りたまひぬ。",tr:"あの方（夫）が、旅からお帰りになった。"},{m:"兄（女性から見た）",t:"[[せ]]なる人、妹をいとほしみたまふ。",tr:"兄である人は、妹をいとおしみなさる。"}]},
+ {w:"せうそこ", pos:"名", mean:"手紙・便り／案内を請うこと・様子", expl:"手紙のやりとりのほか、訪問の際に取り次ぎを頼むことも指す。", mne:"『消息（せうそこ）』＝手紙・便り、と現代語の『消息』ともつながる。", senses:[{m:"手紙・便り",t:"遠き国より[[せうそこ]]あり。",tr:"遠い国から手紙が来た。"},{m:"取り次ぎを請う・来訪を告げる",t:"門に立ちて、主に[[せうそこ]]す。",tr:"門に立って、主に取り次ぎを請う。"}]},
+ {w:"せちなり", pos:"形動", mean:"切実だ・ひたすらだ・強く願う様子", expl:"心の底から強く思い詰める、切迫した気持ちを表す。", mne:"『切（せち）』＝『切実』の『切』、と漢字イメージで覚える。", senses:[{m:"切実だ・ひたすらだ",t:"[[せちに]]願ふ心ぞ、神にも通ず。",tr:"ひたすら願う心は、神にも通じる。"}]},
+ {w:"せめて", pos:"副", mean:"無理に・強いて／たいそう", expl:"現代語『せめて（最低限）』とは異なり、『強引に』の意味が中心。", mne:"現代語とのズレに注意し、『無理やり・強引に』を第一に覚える。", senses:[{m:"無理に・強いて",t:"[[せめて]]問はれたまへば、答へたまふ。",tr:"無理に問われなさるので、お答えになる。"},{m:"たいそう・ひどく",t:"[[せめて]]恋しき折ぞ多かる。",tr:"ひどく恋しい時が多い。"}]},
+ {w:"そうす", pos:"動（サ変）", mean:"申し上げる（天皇への謙譲）", expl:"『奏す』の字を当て、天皇に申し上げる特別な謙譲語。", mne:"『奏（そう）す』＝天皇に『奏上』する、と漢字から限定的な敬語と覚える。", senses:[{m:"（天皇に）申し上げる",t:"蔵人、帝に事の由を[[そうす]]。",tr:"蔵人が帝に事情を申し上げる。"}]},
+ {w:"そこはかとなし", pos:"形", mean:"なんとなく・はっきりしない", expl:"特にこれといった理由や対象を特定できない、漠然とした様子を表す。", mne:"『そこ（其処）』が『はか（はっきり）』と『無し』＝場所も理由も不明瞭、と覚える。", senses:[{m:"これといった理由もない・なんとなく",t:"[[そこはかとなく]]書きつくれば",tr:"これといった理由もなく書きつけると",s:"徒然草（序段）"}]},
+ {w:"そらごと", pos:"名", mean:"うそ・でたらめ", expl:"『空言』の字を当て、根拠のない作り話を指す。", mne:"『空（そら）言（ごと）』＝中身の空っぽな言葉＝うそ、と漢字から覚える。", senses:[{m:"うそ・でたらめ",t:"[[そらごと]]を言ひて、人をたぶらかす。",tr:"うそを言って、人をだます。"}]},
+ {w:"たえて（～ず）", pos:"副", mean:"まったく～ない", expl:"下に打消を伴って完全否定を強調する呼応の副詞。", mne:"『さらに・つゆ』と同じ仲間の全否定副詞、とグループで覚える。", senses:[{m:"まったく～ない",t:"その後は[[たえて]]見えず。",tr:"その後はまったく姿が見えない。"}]},
+ {w:"たがふ", pos:"動（四段・下二段）", mean:"食い違う・背く／違える", expl:"物事が一致しない、約束などに背く様子を表す。", mne:"『違（たが）ふ』＝『違う』の古語、とそのまま覚える。", senses:[{m:"食い違う・背く",t:"約束に[[たがひ]]て、人に恨まる。",tr:"約束に背いて、人に恨まれる。"},{m:"間違える・違える",t:"日取りを[[たがへ]]て、人を待たす。",tr:"日取りを間違えて、人を待たせる。"}]},
+ {w:"たけし", pos:"形", mean:"勇猛だ・激しい・強い", expl:"武勇や勢いの強さ、猛々しさを表す形容詞。", mne:"『猛（たけ）し』＝『猛々しい』の語源、と漢字から覚える。", senses:[{m:"勇猛だ・強い",t:"[[たけき]]武士も、涙を流しぬ。",tr:"勇猛な武士も、涙を流した。"},{m:"激しい",t:"[[たけき]]風に、船も進まず。",tr:"激しい風で、船も進まない。"}]},
+ {w:"たてまつる", pos:"動（四段）", mean:"差し上げる（謙譲）／召し上がる・お召しになる（尊敬の補助）", expl:"物を献上する謙譲語として使われるほか、尊敬の補助動詞としても頻出する。", mne:"『奉（たてまつ）る』＝献上する、が基本、補助動詞の用法もセットで覚える。", senses:[{m:"差し上げる（謙譲）",t:"帝に文を[[たてまつる]]。",tr:"帝に手紙を差し上げる。"},{m:"お召しになる・召し上がる（尊敬）",t:"御衣を[[たてまつり]]て、出でたまふ。",tr:"お召し物をお召しになって、お出かけになる。"}]},
+ {w:"たのむ", pos:"動（四段・下二段）", mean:"頼りにする／頼りにさせる・あてにさせる", expl:"四段は自分が頼る意味、下二段は相手に自分を頼らせる（期待させる）意味になる点に注意。", mne:"活用の種類で意味が変わる語として『四段＝頼る／下二段＝頼らせる』とセットで覚える。", senses:[{m:"頼りにする・あてにする",t:"人の情けを[[たのみ]]て、旅に出づ。",tr:"人の情けをあてにして、旅に出る。"},{m:"頼りにさせる・あてにさせる",t:"行く末を[[たのめ]]て、女のもとを去りぬ。",tr:"将来を期待させて、女のもとを去った。"}]},
+ {w:"たふ", pos:"動（下二段）", mean:"堪える・こらえる・我慢できる", expl:"苦しみや感情を抑えて耐え忍ぶことを表す。", mne:"現代語『堪える（たえる）』の古い形、とそのまま覚える。", senses:[{m:"堪える・こらえる",t:"悲しみに[[たへ]]ず、声を上げて泣く。",tr:"悲しみに堪えられず、声を上げて泣く。"}]},
+ {w:"ためし", pos:"名", mean:"先例・前例", expl:"過去に同様のことがあった例を指す語。", mne:"『試し』ではなく『例（ためし）』＝先例、と現代語との違いに注意して覚える。", senses:[{m:"先例・前例",t:"昔よりの[[ためし]]なれば、疑ふべくもあらず。",tr:"昔からの先例なので、疑うまでもない。"}]},
+]},
+{id:11, words:[
+ {w:"たより", pos:"名", mean:"頼り・よりどころ・手紙・機会・便り", expl:"人や物事へのつながり・手段を広く指し、『手紙』『機会』の意味でも使われる多義語。", mne:"現代語『便り（たより）』＝手紙の意味に加え『頼れる手段』も覚える。", senses:[{m:"頼り・よりどころ",t:"身寄りなく、[[たより]]なき身なり。",tr:"身寄りがなく、頼りのない身である。"},{m:"手紙・便り",t:"都より[[たより]]あり。",tr:"都から便りがある。"},{m:"機会・ついで",t:"[[たより]]あらば、文を送らむ。",tr:"機会があれば、手紙を送ろう。"}]},
+ {w:"ぢもく", pos:"名", mean:"除目（官吏を任命する朝廷の儀式）", expl:"朝廷で行われる、諸国の国司などの官職を任命する年中行事を指す。", mne:"『除目（ぢもく）』＝官職を除（あらた）め定める儀式、と漢字から覚える。", senses:[{m:"官職を任命する朝廷の儀式",t:"[[ぢもく]]の夜、人々、官を望みて騒ぐ。",tr:"除目の夜、人々は官職を望んで騒ぐ。"}]},
+ {w:"ついで", pos:"名", mean:"順序・機会・ついでのこと", expl:"物事の起こる順序、またそれに乗じた機会を表す。", mne:"現代語『ついでに』とほぼ同じ、『順序・機会』で覚える。", senses:[{m:"順序",t:"[[ついで]]を違へず、座に着く。",tr:"順序をたがえず、席に着く。"},{m:"機会・ついで",t:"[[ついで]]あらば訪ひたまへ。",tr:"機会があれば、お訪ねください。"}]},
+ {w:"つかまつる", pos:"動（四段）", mean:"いたす（謙譲）", expl:"『する』の謙譲語で、自分の動作をへりくだって言う表現。", mne:"『仕（つかまつ）る』＝『お仕えして行う』＝いたす、と漢字から覚える。", senses:[{m:"（～）いたす・して差し上げる",t:"歌をば、いかでか[[つかまつら]]む。",tr:"歌は、どうして詠みいたしましょうか。"},{m:"お仕えする",t:"年ごろ帝に[[つかまつり]]ぬ。",tr:"長年帝にお仕え申し上げた。"}]},
+ {w:"つかはす", pos:"動（四段）", mean:"お遣わしになる（尊敬）・派遣なさる", expl:"『遣る』の尊敬語で、人や物を差し向ける動作を敬って表す。", mne:"『遣（つか）はす』＝『遣る』の尊敬形、と対応させて覚える。", senses:[{m:"お遣わしになる",t:"帝、使ひを[[つかはす]]。",tr:"帝は、使者をお遣わしになる。"}]},
+ {w:"つきかげ", pos:"名", mean:"月の光・月影", expl:"月そのものではなく、月が放つ光を指す語。", mne:"『月』の『影（光）』＝月光、と漢字構成から覚える。", senses:[{m:"月の光",t:"[[つきかげ]]の澄みわたる夜なり。",tr:"月の光が澄みわたる夜である。"}]},
+ {w:"つきづきし", pos:"形", mean:"似つかわしい・ふさわしい", expl:"その場や状況にぴったり合っている様子を表す評価語。", mne:"『付き付きし』＝ぴったり付いている＝ふさわしい、と覚える。", senses:[{m:"似つかわしい・ふさわしい",t:"季節に[[つきづきしき]]装ひなり。",tr:"季節にふさわしい装いである。"}]},
+ {w:"つごもり", pos:"名", mean:"月末・晦日", expl:"『月（つき）籠（ごも）り』が転じたもので、月が隠れる月末を指す。", mne:"『月籠り』＝月が隠れる頃＝月末、と語源から覚える。", senses:[{m:"月末",t:"三月の[[つごもり]]ごろ、花散りぬ。",tr:"三月の末の頃、花が散った。"}]},
+ {w:"つたなし", pos:"形", mean:"未熟だ・へただ／運が悪い", expl:"技量の拙さのほか、運の悪さを表すこともある語。", mne:"現代語『拙い（つたない）』とほぼ同じ、『下手・未熟』を軸に覚える。", senses:[{m:"未熟だ・へただ",t:"筆の[[つたなき]]を恥づ。",tr:"筆跡の下手さを恥じる。"},{m:"運が悪い・不運だ",t:"身の[[つたなき]]を嘆く。",tr:"運の悪いわが身を嘆く。"}]},
+ {w:"つつむ", pos:"動（四段）", mean:"遠慮する・気兼ねする／包む", expl:"『慎む』に通じ、人目を気にして控えめに振る舞うことを表す。", mne:"『包（つつ）む』＝感情を包み隠す＝遠慮する、とイメージで覚える。", senses:[{m:"遠慮する・気兼ねする",t:"人目を[[つつみ]]て、昼は出でず。",tr:"人目を気にして、昼は外に出ない。"},{m:"包み隠す",t:"悲しみを心に[[つつみ]]て、笑ひぬ。",tr:"悲しみを心に包み隠して、笑った。"}]},
+ {w:"つとめて", pos:"名", mean:"早朝・（何かがあった）翌朝", expl:"一般的な早朝のほか、特に後朝（きぬぎぬ）の翌朝を指すことが多い。", mne:"『努（つと）めて』早起きする時間＝早朝、と語感で覚える。", senses:[{m:"早朝",t:"[[つとめて]]起きて、庭を掃く。",tr:"早朝に起きて、庭を掃く。"},{m:"（何かあった夜の）翌朝",t:"雪の降りし夜の[[つとめて]]、人の来たりぬ。",tr:"雪の降った夜の翌朝、人が来た。"}]},
+ {w:"つゆ（～ず）", pos:"副", mean:"まったく～ない・少しも～ない", expl:"下に打消を伴い、『つゆほども～ない』と完全否定を強調する。", mne:"『露（つゆ）ほども』＝ほんの少しも～ない、と現代語表現と重ねて覚える。", senses:[{m:"まったく～ない・少しも～ない",t:"その人の来るとは、[[つゆ]]思はざりき。",tr:"その人が来るとは、少しも思わなかった。"}]},
+ {w:"つれづれなり", pos:"形動", mean:"することがなく退屈だ・所在ない", expl:"時間を持て余し、手持ち無沙汰でぼんやりしている様子を表す。", mne:"『徒然（つれづれ）』は『徒然草』の題名でも有名、『退屈』と覚える。", senses:[{m:"することがなく退屈だ",t:"[[つれづれなる]]ままに、日暮らし硯に向かひて",tr:"することもなく退屈なのにまかせて、一日中硯に向かって",s:"徒然草（序段）"}]},
+ {w:"つれなし", pos:"形", mean:"冷淡だ・そ知らぬ顔だ・平然としている", expl:"相手への配慮や反応を見せず、素っ気ない態度を表す。", mne:"『連れ無し』＝心が連れ添わない＝冷淡、と語感で覚える。", senses:[{m:"冷淡だ・薄情だ",t:"[[つれなき]]人の心を恨む。",tr:"冷淡な人の心を恨む。"},{m:"そ知らぬ顔だ・平然としている",t:"心の内は苦しけれど、[[つれなく]]もてなす。",tr:"心の内は苦しいけれど、平然とふるまう。"}]},
+ {w:"て（手）", pos:"名", mean:"筆跡・書風／腕前", expl:"身体の『手』だけでなく、書いた文字の筆跡や、技能の腕前を指すことがある。", mne:"『手』が上手い＝『筆跡が美しい・腕前が良い』と意味の広がりを覚える。", senses:[{m:"筆跡・書",t:"[[て]]よく書く人にて、文もうつくし。",tr:"字を上手に書く人で、手紙も美しい。"},{m:"腕前・技量",t:"琴の[[て]]、世に並びなし。",tr:"琴の腕前は、世に並ぶ者がない。"}]},
+]},
+{id:12, words:[
+ {w:"ときめく", pos:"動（四段）", mean:"（寵愛を受けて）栄える・時流に乗って栄える", expl:"現代語の『胸がときめく』とは異なり、権勢を得て華やかに栄える意味が中心。", mne:"『時（とき）に会（あ）う』＝時流に乗って栄える、と覚え現代語との違いに注意。", senses:[{m:"（寵愛を受けて）栄える",t:"帝の御おぼえにて、[[ときめき]]たまふ。",tr:"帝のご寵愛で、栄えていらっしゃる。"}]},
+ {w:"とし", pos:"形", mean:"鋭い・すばやい", expl:"感覚や動作の鋭敏さ、すばやさを表す形容詞。", mne:"『疾（と）し』＝『疾走』の『疾』、すばやい・鋭い、と漢字で覚える。", senses:[{m:"鋭い・すばやい",t:"[[とき]]心にて、事に臨みて遅れず。",tr:"鋭敏な心で、事に臨んで遅れをとらない。"}]},
+ {w:"としごろ", pos:"名", mean:"長年の間・数年来", expl:"現代語『年頃（適齢期）』ではなく、『長い年月の間』という期間を表す。", mne:"現代語との意味ずれに注意し、『長年の間』をまず覚える。", senses:[{m:"長年の間・数年来",t:"[[としごろ]]思ひわたる事なり。",tr:"長年ずっと思い続けてきたことである。"}]},
+ {w:"とぶらふ", pos:"動（四段）", mean:"訪問する・見舞う／弔う", expl:"人を訪ねる意味と、死者を弔う意味の両方を持つ語。", mne:"『訪（とぶら）ふ』＝訪ねる、生者なら見舞い、死者なら弔い、と使い分けて覚える。", senses:[{m:"訪問する・見舞う",t:"病の人を[[とぶらひ]]に行く。",tr:"病気の人を見舞いに行く。"},{m:"弔う",t:"亡き人の後世を[[とぶらふ]]。",tr:"亡き人の後世を弔う。"}]},
+ {w:"とみに", pos:"副", mean:"急に・にわかに", expl:"物事が突然に起こる様子を表す副詞で、多く打消を伴って『急には～ない』となる。", mne:"『頓（とみ）に』＝『頓死』の『頓』と同源、急なさまと覚える。", senses:[{m:"急に・にわかに",t:"[[とみに]]立ち上がりて、走り出づ。",tr:"急に立ち上がって、走り出す。"}]},
+ {w:"なかなかなり", pos:"形動", mean:"中途半端だ・かえって（しない方がよかった）", expl:"生半可な状態がかえってマイナスに働く、というニュアンスを持つ語。", mne:"現代語『なかなか』（かなり）との意味ずれに注意し、『中途半端・かえって』を覚える。", senses:[{m:"中途半端だ",t:"[[なかなかなる]]知恵を出して、事をしそこなふ。",tr:"中途半端な知恵を出して、事をしそこなう。"},{m:"かえって・むしろ",t:"[[なかなか]]見ざらましかば、かくは悲しからじ。",tr:"かえって見なかったならば、これほど悲しくはないだろうに。"}]},
+ {w:"ながむ", pos:"動（下二段）", mean:"もの思いにふけりながら眺める・詠嘆する", expl:"単に景色を見るだけでなく、物思いにふけりながらぼんやり眺める様子を表す。", mne:"『眺む』は『詠（なが）む』にも通じ、もの思いを込めた行為と覚える。", senses:[{m:"物思いにふけって眺める",t:"月を[[ながめ]]て、夜を明かす。",tr:"月を物思いにふけりながら眺めて、夜を明かす。"}]},
+ {w:"な～そ", pos:"連語", mean:"～するな（禁止）", expl:"『な』と『そ』で動詞の連用形（カ変・サ変は未然形）を挟み、禁止を表す呼応表現。", mne:"『な』と『そ』で挟んだら『～するな』と機械的に訳す、と型で覚える。", senses:[{m:"～するな（禁止）",t:"このこと、人に[[な語りそ]]。",tr:"このことを、人に話すな。"}]},
+ {w:"なでふ", pos:"連体詞／副", mean:"どうして・なんという", expl:"驚きや反発を込めて理由を問う語で、反語的に使われることが多い。", mne:"『何（なに）といふ』が縮まった語、と語源から『なんという・どうして』を覚える。", senses:[{m:"どうして・なんという",t:"[[なでふ]]事かあらむ。",tr:"どうしてそんなことがあろうか。"}]},
+ {w:"なにおふ（名に負ふ）", pos:"連語", mean:"評判が高い・名前にふさわしい", expl:"その名の通りの評判・実質を備えていることを表す。", mne:"『名』を『負う』＝名前にふさわしい実質を持つ、と漢字から覚える。", senses:[{m:"評判が高い・名にふさわしい",t:"[[なにおふ]]都の桜、見に来たり。",tr:"名高い都の桜を、見に来た。"}]},
+ {w:"なのめなり", pos:"形動", mean:"いいかげんだ・平凡だ・（打消で）並々でない", expl:"『斜めなり』が語源で、通り一遍の平凡さを表す。打消を伴うと『格別だ』と逆の意味になる点に注意。", mne:"『斜め』＝まっすぐでない＝いい加減、ただし『なのめならず』は『格別』と反転すると覚える。", senses:[{m:"いいかげんだ・並一通りだ",t:"[[なのめなる]]心にては、かかる大事は成らず。",tr:"いいかげんな心では、このような大事は成し遂げられない。"},{m:"（打消で）並々でない・格別だ",t:"[[なのめならず]]喜びたまふ。",tr:"並々でなくお喜びになる。"}]},
+ {w:"なほ", pos:"副", mean:"やはり・依然として／さらに", expl:"以前の状態が変わらず続くこと、また程度が一層増すことを表す。", mne:"現代語『なお』とほぼ同じ、『やはり・さらに』で直感的に覚える。", senses:[{m:"やはり・依然として",t:"日経れど、[[なほ]]消息なし。",tr:"日が経っても、依然として便りがない。"},{m:"さらに・いっそう",t:"雨に加へて、[[なほ]]風さへ吹きいでぬ。",tr:"雨に加えて、さらに風まで吹き出した。"}]},
+ {w:"なまめかし", pos:"形", mean:"優美だ・若々しく上品だ・色っぽい", expl:"みずみずしい若さと気品を兼ね備えた美しさを表す。", mne:"『生（なま）めかし』＝生き生きとした若々しさ、と覚える。", senses:[{m:"優美だ・若々しく上品だ",t:"[[なまめかしき]]御ありさまなり。",tr:"優美で若々しく上品なご様子である。"}]},
+ {w:"なむ", pos:"係助詞", mean:"（強意・強調、係り結びで連体形）", expl:"文中の語を強く指し示す係助詞で、文末は連体形で結ぶ。", mne:"『ぞ・なむ・や・か』は連体形で結ぶ係助詞のグループ、とまとめて覚える。", senses:[{m:"（強意を表す係助詞）",t:"かの人は[[なむ]]来たりける。",tr:"あの人が来たのだ。"}]},
+ {w:"なやむ", pos:"動（四段）", mean:"病気で苦しむ・患う", expl:"現代語の『悩む（思い悩む）』よりも、病に苦しむ意味が古文では中心。", mne:"まず『病気で苦しむ』を第一義として覚える。", senses:[{m:"病気で苦しむ",t:"母、久しく[[なやみ]]たまふ。",tr:"母は、長く病気で苦しんでいらっしゃる。"}]},
+]},
+{id:13, words:[
+ {w:"ならふ", pos:"動（四段）", mean:"慣れる・習慣となる／並ぶ", expl:"『慣らふ』と『並らふ』の両方の意味を持ち、繰り返しによって身につくことを表す。", mne:"『習（なら）ふ』＝繰り返して慣れる、と現代語『習う』ともつなげて覚える。", senses:[{m:"慣れる・習慣となる",t:"旅の暮らしにも[[ならひ]]て、苦しからず。",tr:"旅の暮らしにも慣れて、苦しくない。"}]},
+ {w:"にほふ", pos:"動（四段）", mean:"美しく色づく・つやめく／香る", expl:"視覚的な美しい輝き・色つやを表すのが本来の意味で、嗅覚の意味は後の発展。", mne:"『匂（にほ）ふ』はまず『美しく映える』色彩のイメージで覚える。", senses:[{m:"美しく色づく・照り映える",t:"紅の花の[[にほへる]]野辺なり。",tr:"紅の花が美しく色づいている野辺である。"},{m:"香る・においがする",t:"梅の香の[[にほふ]]夜なり。",tr:"梅の香りが漂う夜である。"}]},
+ {w:"にょうばう", pos:"名", mean:"女房（宮中や貴族の家に仕える女官）", expl:"現代語『女房（妻）』とは異なり、宮仕えする女性使用人を指す。", mne:"『女房』は『奥さん』ではなく『宮廷に仕える女性』と覚え直す。", senses:[{m:"宮中や貴人に仕える女官",t:"[[にょうばう]]ども、御簾の内に控へたり。",tr:"女房たちが、御簾の内に控えている。"}]},
+ {w:"ねんず", pos:"動（サ変）", mean:"祈る・念じる／我慢する", expl:"『念ず』の字を当て、心の中で強く願う、または堪え忍ぶ様子を表す。", mne:"『念（ねん）ず』＝念じる＝祈る、我慢もその延長と覚える。", senses:[{m:"祈る・念じる",t:"仏に[[ねんじ]]て、無事を祈る。",tr:"仏に念じて、無事を祈る。"},{m:"我慢する・こらえる",t:"痛みを[[ねんじ]]て、堪へ忍ぶ。",tr:"痛みを我慢して、堪え忍ぶ。"}]},
+ {w:"～のがり（がり）", pos:"連語", mean:"～のもとへ", expl:"人を表す語に付いて、その人のいる場所への方向を示す。", mne:"『のがり』＝『の（もとへ）＋あり』の意、と訪問先を示す語として覚える。", senses:[{m:"～のもとへ",t:"友の[[がり]]行きて、文を渡す。",tr:"友のもとへ行って、手紙を渡す。"}]},
+ {w:"のたまふ", pos:"動（四段）", mean:"おっしゃる（尊敬）", expl:"『言ふ』の尊敬語で、貴人の発言を敬って表す代表的な敬語動詞。", mne:"『言ふ』の尊敬語として『言ふ→のたまふ』と対応させて覚える。", senses:[{m:"おっしゃる",t:"帝、かくなむ[[のたまふ]]。",tr:"帝は、このようにおっしゃる。"}]},
+ {w:"ののしる", pos:"動（四段）", mean:"大声で騒ぐ・評判になる", expl:"現代語『罵る（悪口を言う）』とは異なり、単に大声で騒ぎ立てる、または世間で評判になる意味を表す。", mne:"現代語との意味ずれに注意し、まず『大騒ぎする』を覚える。", senses:[{m:"大声で騒ぐ",t:"人々[[ののしり]]さわぎて、夜も明けぬ。",tr:"人々が大声で騒いで、夜も明けてしまった。"},{m:"評判になる・名高い",t:"世に[[ののしる]]高名の僧なり。",tr:"世間で評判の高名な僧である。"}]},
+ {w:"はかなし", pos:"形", mean:"頼りない・むなしい・ちょっとした", expl:"『はか（目安・成果）』が『無し』で、頼りにならず、あっけなく消えてしまう様子を表す。", mne:"『はか（成果）が無し』＝手ごたえがない＝頼りない・むなしい、と覚える。", senses:[{m:"頼りない・むなしい",t:"[[はかなき]]世の中を、嘆く。",tr:"頼りないむなしい世の中を、嘆く。"},{m:"ちょっとした・取るに足りない",t:"[[はかなき]]ことにも、人は涙す。",tr:"ちょっとしたことにも、人は涙を流す。"}]},
+ {w:"はかばかし", pos:"形", mean:"てきぱきしている・はっきりしている・頼りになる", expl:"物事が順調にはかどる様子、または頼りがいのある様子を表す。", mne:"『捗（はかど）る』と同源、『てきぱき進む』とつなげて覚える。", senses:[{m:"頼りになる・しっかりしている",t:"[[はかばかしき]]後見もなく、心細し。",tr:"頼りになる後見人もなく、心細い。"}]},
+ {w:"はしたなし", pos:"形", mean:"きまりが悪い・中途半端だ・そっけない", expl:"どっちつかずで落ち着かない、居心地の悪い気まずさを表す。", mne:"『端（はした）』＝中途半端な端数、と考え『きまりが悪い』を導く。", senses:[{m:"きまりが悪い",t:"人の中にて恥をかき、[[はしたなく]]思ふ。",tr:"人の中で恥をかいて、きまり悪く思う。"},{m:"中途半端だ",t:"[[はしたなき]]年ごろにて、子とも大人ともつかず。",tr:"中途半端な年頃で、子どもとも大人ともつかない。"},{m:"そっけない・無愛想だ",t:"[[はしたなく]]言ひ放ちて立ちぬ。",tr:"そっけなく言い放って立ち去った。"}]},
+ {w:"はづかし", pos:"形", mean:"（こちらが気後れするほど）立派だ／恥ずかしい", expl:"相手が優れすぎていて、こちらが気後れするような立派さを表す用法が重要。", mne:"『相手が立派すぎて自分が恥ずかしくなる』という発想の転換で覚える。", senses:[{m:"立派だ（こちらが気後れするほど）",t:"[[はづかしき]]人の前にて、物も言はれず。",tr:"気後れするほど立派な人の前で、物も言えない。"},{m:"恥ずかしい",t:"人に見られて、いと[[はづかし]]。",tr:"人に見られて、とても恥ずかしい。"}]},
+ {w:"はやく", pos:"副", mean:"以前に・かつて／なんと～だったのだなあ（気づき）", expl:"過去の出来事を指すほか、後に気づいた事実に対する感慨を表すこともある。", mne:"『早く』が『以前に』の意味になる古語用法、と現代語とのズレを意識する。", senses:[{m:"以前に・とっくに",t:"[[はやく]]この家に住みし人なり。",tr:"以前にこの家に住んでいた人である。"},{m:"実は～だったのだ（気づき）",t:"見れば、[[はやく]]死にたる人なりけり。",tr:"見ると、なんと死んでいた人だったのだなあ。"}]},
+ {w:"はべり", pos:"動（ラ変）", mean:"お仕えする（謙譲）／あります・ございます（丁寧）", expl:"『あり・をり』の丁寧語・謙譲語として非常に多用される最重要敬語動詞。", mne:"『侍（はべ）り』＝おそばに控える→丁寧に『あります』、と『さぶらふ』と同じ仲間で覚える。", senses:[{m:"お仕えする",t:"宮の御前に[[はべる]]人々なり。",tr:"宮の御前にお仕えする人々である。"},{m:"あります・ございます（丁寧）",t:"かく申す者は、都の者にて[[はべり]]。",tr:"こう申す者は、都の者でございます。"}]},
+ {w:"ひがごと", pos:"名", mean:"間違ったこと・道理に外れたこと", expl:"『僻（ひが）事』の字を当て、正しくない、ひねくれたことを指す。", mne:"『僻（ひが）む』の『僻』＝ひねくれ＝間違い、と漢字から覚える。", senses:[{m:"間違ったこと・道理に外れたこと",t:"人の[[ひがごと]]をば、笑ふべからず。",tr:"人の間違いを、笑ってはならない。"}]},
+ {w:"ひごろ", pos:"名", mean:"ふだん・数日来・日ごろ", expl:"平常の様子、また特定の期間の日々の連続を指す。", mne:"現代語『日ごろ』とほぼ同じなので直感的に覚えられる。", senses:[{m:"ふだん・日ごろ",t:"[[ひごろ]]の心づかひ、人の知らぬ所なり。",tr:"ふだんの心づかいは、人の知らない所である。"},{m:"数日来・何日も",t:"[[ひごろ]]降りし雨、今日やみぬ。",tr:"何日も降っていた雨が、今日やんだ。"}]},
+]},
+{id:14, words:[
+ {w:"びんなし", pos:"形", mean:"不都合だ・都合が悪い・気の毒だ", expl:"『便（びん）無し』で、都合が悪く具合の良くない様子を表す。", mne:"『便（びん）』が『無し』＝都合が無い＝不都合、と漢字構成で覚える。", senses:[{m:"不都合だ・具合が悪い",t:"[[びんなき]]ことなれば、人に語らず。",tr:"不都合なことなので、人に語らない。"},{m:"気の毒だ・かわいそうだ",t:"[[びんなく]]思ひて、衣を与ふ。",tr:"気の毒に思って、着物を与える。"}]},
+ {w:"ふ（経）", pos:"動（下二段）", mean:"（時が）経過する", expl:"時間が過ぎ去っていくことを表す動詞。", mne:"『経（ふ）』＝『経過』の『経』、と漢字一字から時間の経過を覚える。", senses:[{m:"（時が）経過する・過ごす",t:"多くの年を[[へ]]て、故郷に帰る。",tr:"多くの年月を経て、故郷に帰る。"}]},
+ {w:"ふびんなり", pos:"形動", mean:"気の毒だ・かわいそうだ", expl:"『不憫（ふびん）』の字を当て、相手への同情の気持ちを表す。", mne:"現代語『不憫（ふびん）』とほぼ同じ意味で直感的に覚えられる。", senses:[{m:"かわいそうだ・気の毒だ",t:"[[ふびんなる]]身の上を聞きて、涙ぐむ。",tr:"気の毒な身の上を聞いて、涙ぐむ。"}]},
+ {w:"ふみ", pos:"名", mean:"手紙／書物・漢籍", expl:"『文（ふみ）』の字が示す通り、手紙のほか学問的な書物・漢文の書を指す。", mne:"『文（ふみ）』＝文字で書かれたもの全般＝手紙・書物、と覚える。", senses:[{m:"手紙",t:"恋しき人の[[ふみ]]を、いくたびも読む。",tr:"恋しい人の手紙を、何度も読む。"},{m:"書物・漢籍",t:"夜ごと[[ふみ]]を読みて、学びたまふ。",tr:"毎晩書物を読んで、学びなさる。"}]},
+ {w:"ふる（旧る・触る・震る）", pos:"動", mean:"年を取る・古くなる／触れる／震える", expl:"同音で複数の意味を持つ語で、文脈により『古びる』『触れる』『震える』を判断する。", mne:"『古（ふ）る』＝時が経って古くなる、を基本義として覚える。", senses:[{m:"古くなる・年を取る",t:"[[ふり]]にし宿に、人の来たる。",tr:"古くなった家に、人が来た。"},{m:"触れる",t:"袖に[[ふれ]]し人の香ぞする。",tr:"袖に触れた人の香りがする。"},{m:"震える",t:"寒さに身の[[ふるふ]]。",tr:"寒さに身が震える。"}]},
+ {w:"ほい", pos:"名", mean:"本来の意志・本望・かねての願い", expl:"『本意（ほい）』の字を当て、もともと抱いていた願いや意図を指す。", mne:"『本意（ほんい）』の音が変化した語、と漢字から意味をつかむ。", senses:[{m:"本来の願い・本望",t:"年ごろの[[ほい]]を遂げて、出家す。",tr:"長年の本望を遂げて、出家する。"}]},
+ {w:"ほど", pos:"名", mean:"時間・距離・年齢・程度・身分", expl:"様々な『程合い』を広く指す多義語で、文脈に応じて訳し分けが必要。", mne:"『程（ほど）』は『どれくらいか』を表す万能語、と広く捉えて覚える。", senses:[{m:"時間・ころ",t:"しばしの[[ほど]]に、日暮れぬ。",tr:"わずかな間に、日が暮れた。"},{m:"距離・隔たり",t:"都までは、遠き[[ほど]]なり。",tr:"都までは、遠い道のりである。"},{m:"年齢",t:"[[ほど]]よりは大人びたる人なり。",tr:"年齢のわりには大人びた人である。"},{m:"身分・程度",t:"[[ほど]]に応じて、衣を調ふ。",tr:"身分に応じて、衣装を整える。"}]},
+ {w:"まいて", pos:"副", mean:"まして・なおさら", expl:"前の事柄と比較して、さらに程度が強まることを表す副詞。", mne:"『まして』の古い形とそのまま対応させて覚える。", senses:[{m:"まして・なおさら",t:"子ひとり失ひて悲し。[[まいて]]二人失はば、いかばかりぞ。",tr:"子ひとりを失っても悲しい。まして二人を失ったら、どれほどだろう。"}]},
+ {w:"まうく", pos:"動（下二段）", mean:"準備する・用意する", expl:"何かのために前もって物事を整えておくことを表す。", mne:"『設（まう）く』＝『設置』の『設』、と漢字から『準備』を覚える。", senses:[{m:"準備する・用意する",t:"客人のために、饗を[[まうけ]]たり。",tr:"客人のために、ご馳走を用意した。"}]},
+ {w:"まうづ", pos:"動（下二段）", mean:"参上する・参詣する（謙譲）", expl:"目上の人のもとや神社仏閣へ出向くことをへりくだって表す謙譲語。", mne:"『詣（まう）づ』＝『初詣』の『詣』、と漢字から『参詣する』を覚える。", senses:[{m:"参上する・参詣する",t:"初瀬の寺に[[まうで]]て、祈る。",tr:"初瀬の寺に参詣して、祈る。"}]},
+ {w:"まかる", pos:"動（四段）", mean:"退出する（謙譲）", expl:"貴人の御前から下がる、また地方などへ出て行くことをへりくだって表す。", mne:"『罷（まか）る』＝『罷免』の『罷』、貴人の前から『退く』と覚える。", senses:[{m:"退出する",t:"御前より[[まかり]]て、家に帰る。",tr:"御前から退出して、家に帰る。"}]},
+ {w:"まくらことば（修辞法）", pos:"名（修辞法）", mean:"枕詞（特定の語の前に置かれる五音の修飾語）", expl:"特定の語を導くために置かれる、意味よりも音や語調を整える修辞技法。", mne:"『あしひきの→山』のように決まった語を導く『枕』の言葉、と覚える。", senses:[{m:"特定の語を導く五音の修飾語",t:"「あしひきの」を山に冠するは、[[まくらことば]]なり。",tr:"「あしひきの」を「山」にかぶせるのは、枕詞である。"}]},
+ {w:"まさなし", pos:"形", mean:"よくない・道理に合わない・見苦しい", expl:"正しくない、あるいは体裁が悪いことを表す評価語。", mne:"『正（まさ）無し』＝正しくない、と漢字から否定的評価を覚える。", senses:[{m:"よくない・見苦しい",t:"[[まさなき]]振る舞ひをば、人も笑ふ。",tr:"よくない振る舞いを、人も笑う。"}]},
+ {w:"まな", pos:"名", mean:"漢字・漢文（真名）", expl:"『真名』の字を当て、漢字・漢文を指す。仮名（かな）に対する語で、『まなの書』などと使われる。", mne:"『真名（まな）』＝正式な（本物の）文字＝漢字、『仮名（かな）』＝仮の文字、と対で覚える。", senses:[{m:"漢字・漢文（真名）",t:"[[まな]]にて書ける文は、女の読みがたし。",tr:"漢字で書かれた手紙は、女性には読みにくい。"}]},
+ {w:"まほなり", pos:"形動", mean:"完全だ・きちんとしている", expl:"欠けたところがなく整っている様子を表す。", mne:"『真秀（まほ）なり』＝『真（まこと）に秀でている』＝完全、と覚える。", senses:[{m:"完全だ・整っている",t:"[[まほなる]]姿にて、少しの欠けもなし。",tr:"完全に整った姿で、少しの欠点もない。"}]},
+]},
+{id:15, words:[
+ {w:"まめまめし（まめやかなり）", pos:"形", mean:"まじめだ・誠実だ・実用的だ", expl:"『まめ』を重ねて強めた語で、浮ついたところのない実直さや実用性を表す。", mne:"現代語『まめに働く』の『まめ』を強めた形、と覚える。", senses:[{m:"まじめだ・誠実だ",t:"[[まめまめしく]]仕へて、主の信頼を得たり。",tr:"まじめに実直に仕えて、主の信頼を得た。"},{m:"実用的だ",t:"[[まめまめしき]]贈り物に、人々喜ぶ。",tr:"実用的な贈り物に、人々は喜ぶ。"}]},
+ {w:"まもる", pos:"動（四段）", mean:"じっと見守る・じっと見つめる", expl:"現代語『守る（保護する）』よりも、視線を離さずじっと見つめる意味が中心。", mne:"『目守（まも）る』＝目を離さず見つめる、と漢字から本義を覚える。", senses:[{m:"じっと見つめる・見守る",t:"子の寝顔を[[まもり]]て、夜を明かす。",tr:"子の寝顔をじっと見つめて、夜を明かす。"}]},
+ {w:"まらうど", pos:"名", mean:"客人", expl:"よそから訪れてきた客を指す語。", mne:"『客人（まろうど）』の古い読み、と現代語の名残から覚える。", senses:[{m:"客人",t:"遠き国より[[まらうど]]来たりぬ。",tr:"遠い国から客人が来た。"}]},
+ {w:"まゐる", pos:"動（四段）", mean:"参上する（謙譲）／召し上がる・お乗りになる（尊敬）", expl:"貴人のもとへ行く謙譲語のほか、『食ふ・飲む・着る』などの尊敬語としても使われる。", mne:"『参（まゐ）る』は基本は謙譲だが、『召し上がる』の尊敬用法もあると覚える。", senses:[{m:"参上する（謙譲）",t:"宮に[[まゐる]]。",tr:"宮のもとへ参上する。"},{m:"召し上がる（尊敬）",t:"帝、御粥を[[まゐり]]たまふ。",tr:"帝は、お粥を召し上がる。"}]},
+ {w:"みそかなり", pos:"形動", mean:"こっそりと・ひそかだ", expl:"人目を避けてひそかに物事を行う様子を表す。", mne:"『密（みそ）かなり』＝『密か』とほぼ同じ漢字・意味で覚えやすい。", senses:[{m:"こっそり・ひそかだ",t:"[[みそかに]]通ひて、人に知らせず。",tr:"こっそり通って、人に知らせない。"}]},
+ {w:"みゆ", pos:"動（下二段）", mean:"見える・姿を見せる／結婚する", expl:"自然に目に入る意味のほか、女性のもとに男性が姿を見せる＝結婚を表す用法がある。", mne:"『見ゆ』は基本『見える』、恋愛文脈では『結婚する』に転じると覚える。", senses:[{m:"見える",t:"遠き山の端に、月の[[みゆ]]。",tr:"遠くの山の端に、月が見える。"},{m:"（男女が）結ばれる・結婚する",t:"女、男に[[みえ]]て、契りを交はす。",tr:"女が男と結ばれて、契りを交わす。"}]},
+ {w:"むくつけし", pos:"形", mean:"気味が悪い・恐ろしい", expl:"不気味で恐怖を感じさせる様子を表す形容詞。", mne:"語感そのままに『不気味・気味悪い』と丸ごと覚える。", senses:[{m:"気味が悪い・恐ろしい",t:"[[むくつけき]]物の影、庭に立つ。",tr:"気味の悪い物の影が、庭に立っている。"}]},
+ {w:"むげなり", pos:"形動", mean:"ひどい・論外だ・むやみだ", expl:"『無下（むげ）なり』の字を当て、程度がはなはだしく良くない様子を表す。", mne:"現代語『無下に扱う』の『無下』と同語源、『ひどい』と覚える。", senses:[{m:"ひどい・あんまりだ",t:"[[むげなる]]仕打ちを受けて、泣き伏す。",tr:"ひどい仕打ちを受けて、泣き伏す。"},{m:"むやみだ・ひどく",t:"[[むげに]]幼き子なれば、いかが育てむ。",tr:"むやみに幼い子なので、どう育てようか。"}]},
+ {w:"むつかし", pos:"形", mean:"うっとうしい・気味が悪い・わずらわしい", expl:"現代語『難しい（困難）』とは異なり、不快でうっとうしい感情を表す。", mne:"現代語との意味ずれに注意し、『うっとうしい・不快』を第一に覚える。", senses:[{m:"うっとうしい・不快だ",t:"雨降り続きて、[[むつかしき]]ほどなり。",tr:"雨が降り続いて、うっとうしい頃である。"},{m:"気味が悪い・不安だ",t:"夜の山道、[[むつかしく]]思ひて急ぐ。",tr:"夜の山道を気味悪く思って、急ぐ。"},{m:"わずらわしい・面倒だ",t:"[[むつかしき]]事を頼まるるが苦し。",tr:"面倒なことを頼まれるのがつらい。"}]},
+ {w:"むなしくなる", pos:"連語", mean:"亡くなる（死ぬことの婉曲表現）", expl:"『空しくなる』で、命の火が消えこの世からいなくなることを婉曲に表す。", mne:"『空（むな）しくなる』＝存在が空になる＝死、と婉曲表現として覚える。", senses:[{m:"亡くなる",t:"病重く、ついに[[むなしくなり]]たまひぬ。",tr:"病が重く、とうとうお亡くなりになった。"}]},
+ {w:"めざまし", pos:"形", mean:"心外だ（意外で不快）／すばらしい（意外なほど）", expl:"『目覚まし』の字が示す通り、はっと目が覚めるほど意外な様子を、良悪どちらにも使う。", mne:"『目が覚めるほど意外』が基本で、文脈次第で『心外』にも『すばらしい』にもなると覚える。", senses:[{m:"心外だ・気にくわない",t:"身分低き者に侮らるるは、[[めざまし]]。",tr:"身分の低い者に侮られるのは、心外だ。"},{m:"すばらしい・目を見張るほどだ",t:"[[めざましき]]ほどの美しさなり。",tr:"目の覚めるほどの美しさである。"}]},
+ {w:"めづらし", pos:"形", mean:"すばらしい・新鮮だ・愛すべきだ", expl:"現代語『珍しい（希少）』よりも、新鮮で心惹かれる魅力を表すことが多い。", mne:"『愛（め）づ』（愛でる）＋『らし』＝愛でたくなる＝すばらしい、と語源で覚える。", senses:[{m:"新鮮だ・珍しい",t:"春来て、[[めづらしき]]鳥の声を聞く。",tr:"春が来て、新鮮な鳥の声を聞く。"},{m:"すばらしい・愛すべきだ",t:"[[めづらしき]]御かたちにて、見る人皆愛づ。",tr:"すばらしいお姿で、見る人は皆賞賛する。"}]},
+ {w:"めでたし", pos:"形", mean:"すばらしい・立派だ", expl:"現代語『めでたい（祝い事）』よりも広く、称賛すべき見事さ全般を表す。", mne:"『愛（め）づ』＋『甚（いた）し』＝愛でる気持ちが甚だしい＝すばらしい、と覚える。", senses:[{m:"すばらしい・立派だ",t:"[[めでたき]]御幸なり。",tr:"すばらしい行幸である。"}]},
+ {w:"めのと", pos:"名", mean:"乳母", expl:"実母に代わって子に乳を与え養育する女性を指す。", mne:"『め（女）の（の）と（人）』＝乳をやる女性＝乳母、と覚える。", senses:[{m:"乳母",t:"[[めのと]]、若君を抱きて参る。",tr:"乳母が、若君を抱いて参上する。"}]},
+ {w:"めやすし", pos:"形", mean:"感じがよい・見た目に感じがよい", expl:"『目安し』の字を当て、見た目に不快感がなく好ましい様子を表す。", mne:"『目』に『安（やす）し』＝見て安心できる＝感じがよい、と漢字で覚える。", senses:[{m:"感じがよい・見苦しくない",t:"[[めやすき]]人柄にて、誰にも好まる。",tr:"感じのよい人柄で、誰からも好かれる。"}]},
+]},
+{id:16, words:[
+ {w:"～もがな（てしが・にしが）", pos:"終助", mean:"～があればなあ（願望）", expl:"体言や連用形などに付いて、実現を願う気持ちを表す終助詞。", mne:"『てしが・にしが』も同じ願望のグループとしてまとめて覚える。", senses:[{m:"～があればなあ（願望）",t:"友[[もがな]]、語らひてこの夜を明かさむ。",tr:"友がいればなあ。語り合ってこの夜を明かそう。"}]},
+ {w:"もとより", pos:"副", mean:"はじめから・もちろん・元来", expl:"物事の最初から、あるいは当然のこととして、という意味を表す。", mne:"『本（もと）より』＝根本から、と漢字イメージで『はじめから』を覚える。", senses:[{m:"はじめから・もちろん",t:"[[もとより]]知りたる事なり。",tr:"はじめから知っていたことである。"}]},
+ {w:"ものす", pos:"動（サ変）", mean:"いる・行く・する（さまざまな動詞の代用）", expl:"具体的な動詞を婉曲に言い換える際に使われる、文脈依存の代動詞。", mne:"『もの＋す』＝『何かをする』の万能代動詞、と便利さで覚える。", senses:[{m:"いる・来る・行く",t:"宮、かしこに[[ものし]]たまふ。",tr:"宮は、あちらにいらっしゃる。"},{m:"する・書く・言う（動詞の代用）",t:"かく文を[[ものし]]て、送りたまふ。",tr:"このように手紙を書いて、お送りになる。"}]},
+ {w:"やうやう", pos:"副", mean:"だんだん・しだいに", expl:"物事が徐々に変化していく様子を表す副詞。", mne:"現代語『ようやく』の語源だが意味は『だんだん』と覚える。", senses:[{m:"だんだん・しだいに",t:"[[やうやう]]白くなりゆく山際",tr:"だんだん白くなっていく山際",s:"枕草子（第一段・冒頭）"}]},
+ {w:"やがて", pos:"副", mean:"すぐに・そのまま", expl:"現代語『やがて（しばらくして）』とは異なり、時間差なく即座に、の意味が中心。", mne:"現代語との時間感覚のズレに注意し、『すぐに・間を置かず』を覚える。", senses:[{m:"すぐに",t:"帰り来て、[[やがて]]出でたまふ。",tr:"帰ってきて、すぐにお出かけになる。"},{m:"そのまま",t:"衣を[[やがて]]着て、寝たまふ。",tr:"着物をそのまま着て、お休みになる。"}]},
+ {w:"やさし", pos:"形", mean:"つらい・恥ずかしい／優美だ・けなげだ", expl:"『痩さし』（身が痩せるほどつらい）が原義で、そこから『優美だ』の意味にも発展した。", mne:"現代語『優しい』とは違い、まず『つらい・恥ずかしい』の意味を覚える。", senses:[{m:"つらい・恥ずかしい",t:"身も細るほど[[やさし]]と思ふ。",tr:"身も細るほどつらく恥ずかしいと思う。"},{m:"優美だ・上品だ",t:"[[やさしき]]心ばへの人なり。",tr:"優美でけなげな心がけの人である。"}]},
+ {w:"やつす", pos:"動（四段）", mean:"目立たなくする・みすぼらしく姿を変える", expl:"身なりを地味にしたり、姿を変えて正体を隠すことを表す。", mne:"『やつれる』の他動詞形と考え、『わざと目立たなくする』と覚える。", senses:[{m:"目立たなくする・みすぼらしくする",t:"身を[[やつし]]て、忍びて出でたまふ。",tr:"身をやつして、人目を忍んでお出かけになる。"}]},
+ {w:"やまと", pos:"名", mean:"大和（日本の国、また奈良地方）", expl:"日本という国そのもの、または奈良地方を指す地名で、『やまとことば』などの複合語でも頻出する。", mne:"『大和（やまと）』＝日本の古い呼び名、と漢字からそのまま覚える。", senses:[{m:"日本・大和（奈良）",t:"唐の国より、[[やまと]]に渡り来たる。",tr:"唐の国から、日本に渡ってきた。"}]},
+ {w:"やむごとなし", pos:"形", mean:"高貴だ・格別だ・捨て置けない", expl:"『止む事無し』が語源で、放っておけないほど重要・高貴な様子を表す。", mne:"『止（や）む事（こと）無し』＝そのままにできない＝格別、と語構成で覚える。", senses:[{m:"高貴だ・身分が高い",t:"[[やむごとなき]]人の御子なり。",tr:"高貴な方のお子様である。"},{m:"格別だ・放っておけない",t:"[[やむごとなき]]事ありて、参りがたし。",tr:"放っておけない大事なことがあって、参上しにくい。"}]},
+ {w:"やる", pos:"動（四段）", mean:"（気持ちを）晴らす／行かせる・遣わす／遠くへ～する", expl:"心のもやもやを発散させる意味や、人や物を先方へ送る意味を持つ。", mne:"『心を晴らす』『人を遣わす』の二つの用法をセットで覚える。", senses:[{m:"（気持ちを）晴らす",t:"心を[[やり]]て、野に遊ぶ。",tr:"気持ちを晴らして、野に遊ぶ。"},{m:"行かせる・送る",t:"使ひを都へ[[やる]]。",tr:"使者を都へ行かせる。"},{m:"（遠くへ）～する",t:"はるかに見[[やる]]。",tr:"はるか遠くを見やる。"}]},
+ {w:"やをら", pos:"副", mean:"そっと・静かに", expl:"音を立てずに静かに動作を行う様子を表す。", mne:"『やをら』＝そっと動く、と語感そのままで覚える。", senses:[{m:"そっと・静かに",t:"[[やをら]]立ちて、几帳の後ろへ入る。",tr:"そっと立って、几帳の後ろへ入る。"}]},
+ {w:"ゆかし", pos:"形", mean:"見たい・知りたい・聞きたい（心ひかれる）", expl:"対象に強く心惹かれ、もっと知りたい・近づきたいと思う気持ちを表す。", mne:"『行かし』＝心がそちらへ行きたくなる、と語源イメージで覚える。", senses:[{m:"見たい・知りたい",t:"都の様子の[[ゆかしく]]て、上りたまふ。",tr:"都の様子が見たくて、上京なさる。"},{m:"心ひかれる・慕わしい",t:"[[ゆかしき]]人柄にて、心ひかる。",tr:"心ひかれる人柄で、慕わしく思う。"}]},
+ {w:"ゆくりなし", pos:"形", mean:"突然だ・思いがけない・軽率だ", expl:"予期せぬ突発的な出来事や、深く考えない軽率さを表す。", mne:"『ゆくり』＝前触れなく、と語感から『突然・不意に』を覚える。", senses:[{m:"突然だ・思いがけない",t:"[[ゆくりなく]]風吹きて、船流されぬ。",tr:"突然風が吹いて、船が流された。"},{m:"軽率だ・軽はずみだ",t:"[[ゆくりなき]]言葉を口にして、後に悔ゆ。",tr:"軽はずみな言葉を口にして、後に後悔する。"}]},
+ {w:"ゆふされば", pos:"連語", mean:"夕方になると", expl:"『夕さり来（く）れば』が縮約した表現で、夕暮れが訪れる意を表す。", mne:"『夕（ゆふ）さる』＝夕方になる、が『されば』の形になったと覚える。", senses:[{m:"夕方になると",t:"[[ゆふされば]]野辺に風立つ。",tr:"夕方になると、野辺に風が立つ。"}]},
+ {w:"ゆゆし", pos:"形", mean:"恐れ多い・不吉だ／（程度が）はなはだしい・すばらしい", expl:"神聖・不吉のどちらの意味でも『触れてはならないほど』の強い程度を表す評価語。", mne:"『忌（い）む』に通じ、『触れてはならないほど』の強さ、善悪どちらにも使うと覚える。", senses:[{m:"不吉だ・恐れ多い",t:"[[ゆゆしき]]事なれば、人にも語らず。",tr:"不吉なことなので、人にも語らない。"},{m:"はなはだしい・すばらしい",t:"[[ゆゆしく]]美しき姫君なり。",tr:"たいそう美しい姫君である。"}]},
+]},
+{id:17, words:[
+ {w:"ゆゑ", pos:"名", mean:"理由・わけ・由緒", expl:"物事の起こる原因や、家柄・由来を指す語。", mne:"現代語『ゆえに』の語源で、『理由・由緒』とそのまま覚える。", senses:[{m:"理由・わけ",t:"[[ゆゑ]]を問へば、答へず。",tr:"理由を尋ねると、答えない。"},{m:"由緒・風情",t:"[[ゆゑ]]ある家柄の人なり。",tr:"由緒ある家柄の人である。"}]},
+ {w:"ようせずは", pos:"連語", mean:"悪くすると・下手をすると", expl:"事がうまくいかなかった場合を想定して述べる表現。", mne:"『よう（よく）せずは』＝うまくいかなければ、と直訳から覚える。", senses:[{m:"悪くすると・下手をすると",t:"[[ようせずは]]、命も危ふからむ。",tr:"下手をすると、命も危ないだろう。"}]},
+ {w:"よし（由・良し・縦し）", pos:"名／形／副", mean:"理由・いわれ（由）／良い（良し）／たとえ～としても（縦し）", expl:"同音で三つの異なる語を持つため、文脈でどの『よし』かを見極める必要がある。", mne:"『由・良し・縦し』の三役を持つ語、とまとめて三つ並べて覚える。", senses:[{m:"理由・事情",t:"かかる[[よし]]を申し上げむ。",tr:"このような事情を申し上げよう。"},{m:"良い・すぐれている",t:"[[よき]]人の御子なり。",tr:"身分の高いすぐれた方のお子様である。"},{m:"たとえ～でも",t:"[[よし]]それにても、我は行くべし。",tr:"たとえそうであっても、私は行くつもりだ。"}]},
+ {w:"よのなか", pos:"名", mean:"世間・治世／男女の仲", expl:"社会全体を指すほか、恋愛関係・夫婦関係を指す用法がある。", mne:"『世の中』は『世間』のほか『男女の仲』も指すと文脈で覚える。", senses:[{m:"世間・世の中",t:"[[よのなか]]をうしと思ひて、山に入る。",tr:"世の中をつらいと思って、山に入る。"},{m:"男女の仲・夫婦仲",t:"二人の[[よのなか]]、いかにかなりぬらむ。",tr:"二人の仲は、どうなってしまったのだろう。"}]},
+ {w:"よに～ず（よも～じ）", pos:"連語", mean:"決して～ない（よに～ず）／まさか～ないだろう（よも～じ）", expl:"どちらも強い打消・打消推量を表す呼応表現で、対で覚えると効率的。", mne:"『よに＋ず』＝決して～ない、『よも＋じ』＝まさか～まい、と対にして覚える。", senses:[{m:"決して～ない",t:"このこと、[[よに]]人に語らず。",tr:"このことは、決して人に語らない。"},{m:"まさか～ないだろう",t:"[[よも]]かかることはあらじ。",tr:"まさかこんなことはないだろう。"}]},
+ {w:"よろこび", pos:"名", mean:"お礼・お祝い・昇進", expl:"感謝の意を表す挨拶や、官位が上がる慶事を指すことがある。", mne:"現代語『喜び』に加え、『昇進』の意味もあると覚える。", senses:[{m:"お礼",t:"賜はりし事の[[よろこび]]を申す。",tr:"いただいたことのお礼を申し上げる。"},{m:"昇進・任官",t:"官を賜はりて、[[よろこび]]す。",tr:"官位をいただいて、昇進を喜ぶ。"}]},
+ {w:"らうがはし", pos:"形", mean:"騒がしい・乱雑だ", expl:"『乱（らう）がはし』の字を当て、秩序がなく騒々しい様子を表す。", mne:"『乱がはし』＝乱れて騒がしい、と漢字から覚える。", senses:[{m:"乱雑だ・騒がしい",t:"[[らうがはしき]]市の中を、急ぎて過ぐ。",tr:"騒がしい市場の中を、急いで通り過ぎる。"}]},
+ {w:"らうたし", pos:"形", mean:"かわいい・いたわりたい", expl:"弱く守ってあげたくなるような、いじらしい可愛らしさを表す。", mne:"『労（らう）たし』＝いたわりたくなるほど可愛い、と漢字で覚える。", senses:[{m:"かわいい・いたわりたい",t:"[[らうたき]]稚児の、母にすがりぬ。",tr:"かわいらしい幼子が、母にすがりついた。"}]},
+ {w:"らうらうじ", pos:"形", mean:"洗練されている・熟練している", expl:"物事に慣れ、手際よく上品にこなせる様子を表す。", mne:"『らうらうじ』＝『労（らう）』を重ねた語で、熟練の技と覚える。", senses:[{m:"洗練されている・手慣れている",t:"[[らうらうじき]]手つきにて、琴を弾く。",tr:"洗練された手つきで、琴を弾く。"}]},
+ {w:"れいの", pos:"連体詞", mean:"いつもの・例の", expl:"普段通りであることを指し示す語。", mne:"『例（れい）の』＝『いつもの例の』と現代語とほぼ同じで覚えやすい。", senses:[{m:"いつもの・例の",t:"[[れいの]]所に、人々集ふ。",tr:"いつもの場所に、人々が集まる。"}]},
+ {w:"わざと", pos:"副", mean:"わざわざ・特別に・本格的に", expl:"現代語『わざと（故意に）』よりも、丁寧・本格的に事を行う意味が中心。", mne:"現代語との意味ずれに注意し、『わざわざ・特別に』を第一に覚える。", senses:[{m:"わざわざ",t:"[[わざと]]使ひをやりて、問はす。",tr:"わざわざ使いを送って、尋ねさせる。"},{m:"格別に・本格的に",t:"[[わざと]]めでたき紙に書きて、奉る。",tr:"格別にすばらしい紙に書いて、献上する。"}]},
+ {w:"わびし", pos:"形", mean:"つらい・興ざめだ・貧しくみすぼらしい", expl:"心細く、やるせない気持ちや、みすぼらしい様子を表す。", mne:"『わぶ（動詞）』の形容詞形、とセットで『つらい・わびしい』を覚える。", senses:[{m:"つらい・心細い",t:"旅の空、いと[[わびし]]。",tr:"旅の空は、とてもつらく心細い。"},{m:"貧しい・みすぼらしい",t:"[[わびしき]]住まひなれど、心は豊かなり。",tr:"貧しいみすぼらしい住まいだが、心は豊かである。"},{m:"興ざめだ・がっかりだ",t:"興あるべき宴の、[[わびしく]]なりぬ。",tr:"楽しいはずの宴が、興ざめになった。"}]},
+ {w:"わぶ", pos:"動（上二段）", mean:"困る・つらく思う・嘆く", expl:"物事がうまくいかず困惑し、嘆く様子を表す動詞。", mne:"『わびし』の動詞形として、名詞・形容詞・動詞をセットで覚える。", senses:[{m:"困る・困り果てる",t:"道に迷ひて、ほとほと[[わび]]ぬ。",tr:"道に迷って、すっかり困り果てた。"},{m:"嘆く・つらく思う",t:"世を[[わび]]て、山に籠もる。",tr:"世を嘆いて、山に籠もる。"}]},
+ {w:"わりなし", pos:"形", mean:"道理に合わない・どうしようもない・（程度が）甚だしい", expl:"『理（わり）無し』で、筋が通らない、対処しようのない様子を表す。", mne:"『割（わり）無し』＝割り切れない＝どうしようもない、と覚える。", senses:[{m:"道理に合わない・無理だ",t:"[[わりなき]]仰せ言なり。",tr:"道理に合わない無理なお言葉である。"},{m:"どうしようもない・たまらない",t:"別れの悲しさ、[[わりなく]]思ひたまふ。",tr:"別れの悲しさを、たまらなくお思いになる。"}]},
+ {w:"われかのけしき", pos:"連語", mean:"茫然自失の様子・我を忘れた様子", expl:"『我か（我か人か分からないほどの）様子』の意で、放心状態を表す。", mne:"『我か（我なのか）』分からなくなるほどの放心、とそのまま覚える。", senses:[{m:"茫然自失の様子",t:"[[われかのけしき]]にて、立ち尽くす。",tr:"茫然自失の様子で、立ち尽くす。"}]},
+]},
+{id:18, words:[
+ {w:"ゐる", pos:"動（上一段）", mean:"座る・存在する／（人を）連れて行く", expl:"『をり』に近く座って存在することを表すほか、人を伴って行く『率る』の意味も持つ。", mne:"『ゐる』＝座って『いる』、または人を『率（ゐ）る』＝連れていく、と二つの漢字で覚える。", senses:[{m:"座る・いる",t:"縁に[[ゐ]]て、月を見る。",tr:"縁に座って、月を見る。"},{m:"連れて行く",t:"供人を[[ゐ]]て、都へ上る。",tr:"供の者を連れて、都へ上る。"}]},
+ {w:"をかし", pos:"形", mean:"趣がある・すばらしい／こっけいだ", expl:"知的で明るい興味・関心を引く趣を表す語で、『あはれ』（しみじみ）と対比される美意識。", mne:"『あはれ』としみじみ系、『をかし』は明るい興味系、と対比で覚える。", senses:[{m:"趣がある・風情がある",t:"ほのかにうち光りて行くも[[をかし]]。",tr:"ほのかに光って飛んでいくのも趣がある。",s:"枕草子（第一段・夏）"},{m:"こっけいだ・おもしろい",t:"男の言ふこと、[[をかしく]]て、人々笑ひぬ。",tr:"男の言うことがこっけいで、人々は笑った。"},{m:"かわいらしい",t:"[[をかしき]]稚児の、笑みて寄り来たり。",tr:"かわいらしい幼子が、笑って寄ってきた。"}]},
+ {w:"をこがまし", pos:"形", mean:"ばかげている・差し出がましい", expl:"愚かしく見える様子や、出しゃばった振る舞いを表す。", mne:"『痴（をこ）』＝愚か、が語源、と漢字イメージで覚える。", senses:[{m:"ばかげている・差し出がましい",t:"[[をこがましき]]ふるまひをして、人に笑はる。",tr:"ばかげたふるまいをして、人に笑われる。"}]},
+ {w:"をさをさ", pos:"副", mean:"めったに～ない・ほとんど～ない", expl:"下に打消を伴って、ほとんど起こらないことを強調する呼応の副詞。", mne:"『をさをさ』を見たら文末の打消とセットで『めったに～ない』と訳す。", senses:[{m:"めったに～ない・ほとんど～ない",t:"[[をさをさ]]訪ふ人もなし。",tr:"訪ねてくる人もめったにいない。"}]},
+ {w:"〜を〜み", pos:"連語", mean:"～が～ので（原因・理由）", expl:"形容詞の語幹を『を』と『み』で挟み、原因・理由を表す和歌特有の表現。", mne:"『山高み』＝『山が高いので』のように、『を～み』で原因を表す型と覚える。", senses:[{m:"～が～ので（原因・理由）",t:"岩間[[を狭み]]、水の音高し。",tr:"岩の間が狭いので、水の音が高く響く。"}]},
+ {w:"をとこ（をのこ•をんな•おうな）", pos:"名", mean:"男・夫／（をのこは）男性・従者", expl:"『をとこ』は一般的な男性・夫、『をのこ』は成人男性や身分の低い従者を指すことがある。", mne:"『をとこ』＝男・夫、『をのこ』＝男の使用人、とニュアンスの違いを覚える。", senses:[{m:"男・男性",t:"[[男]]もすなる日記といふものを",tr:"男も書くという日記というものを",s:"土佐日記（冒頭）"},{m:"（身分の低い）男・従者",t:"[[をのこ]]ども、水を汲みに出づ。",tr:"男たち（従者たち）が、水を汲みに出る。"}]},
+ {w:"わろし（あし・よろし・よし）", pos:"形", mean:"（程度が）よくない〈わろし〉／悪い〈あし〉／まあまあだ〈よろし〉／よい〈よし〉", expl:"古文の評価語は『あし＜わろし＜よろし＜よし』の順に並ぶ段階があると整理して覚えるとよい。", mne:"『あし・わろし・よろし・よし』を悪い順に並べて、四段階のものさしとして覚える。", senses:[{m:"よくない・感心しない",t:"手[[わろし]]とて、人に見せず。",tr:"字がよくないといって、人に見せない。"},{m:"悪い・見苦しい",t:"[[あしき]]道に迷ひて、日暮れぬ。",tr:"悪い道に迷って、日が暮れた。"},{m:"まあまあよい・悪くない",t:"心[[よろしき]]人なり。",tr:"心がまあまあよい人である。"}]},
+ {w:"うけたまはる", pos:"動（四段）", mean:"お聞きする・お受けする（謙譲）", expl:"『聞く』『受く』の謙譲語で、目上の言葉や依頼を謹んで受ける動作を表す。", mne:"『承（うけたまは）る』は現代語の敬語表現にもそのまま残っていると覚える。", senses:[{m:"お聞きする",t:"仰せ言を[[うけたまはる]]。",tr:"お言葉をお聞きする。"},{m:"お受けする・承る",t:"御使ひを[[うけたまはり]]て、参りぬ。",tr:"ご使者をお受けして、参上した。"}]},
+ {w:"さへ（だに・すら）", pos:"副助", mean:"～までも（添加）／せめて～だけでも（だに）／～さえ（すら）", expl:"『だに・さへ・すら』は類似の副助詞グループで、添加・類推・限定のニュアンスの違いに注意する。", mne:"『だに・さへ・すら』は三兄弟、と一緒にまとめて覚える。", senses:[{m:"～までも・その上～まで",t:"雨降り、風[[さへ]]吹きいでぬ。",tr:"雨が降り、その上風まで吹き出した。"},{m:"せめて～だけでも",t:"ひと目[[だに]]見まほし。",tr:"せめてひと目だけでも見たい。"},{m:"～でさえ",t:"幼き子[[すら]]、道理を知れり。",tr:"幼い子でさえ、道理を知っている。"}]},
+ {w:"など（何ど）", pos:"副", mean:"どうして（～か、反語）", expl:"理由を問う疑問・反語を表す副詞で、『などか～ん』の形で『どうして～か、いや～ない』となる。", mne:"『など』の後ろに『か』がつけば強い反語、と型で覚える。", senses:[{m:"どうして～か（疑問・反語）",t:"[[などか]]かく悲しからざらむ。",tr:"どうしてこんなに悲しくないことがあろうか。"}]},
+ {w:"～ものの（ものから・ものゆゑ）", pos:"接続助詞", mean:"～けれども・～ものの（逆接）", expl:"前の内容を認めつつ、それに反する内容を続ける逆接の接続助詞グループ。", mne:"『ものから・ものの・ものゆゑ』はすべて逆接の仲間、とまとめて覚える。", senses:[{m:"～けれども（逆接）",t:"憎からぬ[[ものから]]、恨めしくもあり。",tr:"憎くはないけれども、恨めしくもある。"}]},
+]},
+];
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- viewport height fix (mobile browser chrome) ---------- */
+function setVH(){
+  document.documentElement.style.setProperty('--vh', (window.innerHeight*0.01)+'px');
+}
+setVH();
+window.addEventListener('resize', setVH);
+
+/* ---------- screen management ---------- */
+const screens = {
+  title: $('screen-title'),
+  rounds: $('screen-rounds'),
+  mode: $('screen-mode'),
+  words: $('screen-words'),
+  test: $('screen-test'),
+};
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.remove('active'));
+  screens[name].classList.add('active');
+}
+const isActive = (name) => screens[name].classList.contains('active');
+
+/* ---------- small helpers ---------- */
+function numToKanji(n){
+  const d = ['','一','二','三','四','五','六','七','八','九'];
+  if(n<10) return d[n];
+  if(n===10) return '十';
+  if(n<20) return '十'+d[n-10];
+  return String(n);
+}
+function shuffle(a){
+  const arr = a.slice();
+  for(let i=arr.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+  return arr;
+}
+function circled(n){ return '①②③④⑤⑥⑦⑧⑨'[n-1] || '('+n+')'; }
+function markHit(t){ return t.replace(/\[\[(.+?)\]\]/, '<span class="hit">$1</span>'); }
+function plainSentence(t){ return t.replace(/\[\[(.+?)\]\]/, '$1'); }
+function questionCount(round){ return round.words.reduce((a,w)=>a+w.senses.length,0); }
+
+/* ---------- title screen: character reveal ---------- */
+const TITLE_TEXT = '古文単語試験対策';
+const titleEl = $('titleText');
+const CHUNK = 4;
+let globalIdx = 0;
+for(let start=0; start<TITLE_TEXT.length; start+=CHUNK){
+  const col = document.createElement('div');
+  col.className = 'title-col';
+  [...TITLE_TEXT.slice(start, start+CHUNK)].forEach(ch=>{
+    const span = document.createElement('span');
+    span.className = 'ch';
+    span.textContent = ch;
+    span.style.animationDelay = (0.55 + globalIdx*0.09) + 's';
+    col.appendChild(span);
+    globalIdx++;
+  });
+  titleEl.appendChild(col);
+}
+screens.title.addEventListener('click', ()=>{ showScreen('rounds'); });
+
+/* ---------- round select screen ---------- */
+const roundGrid = $('roundGrid');
+function buildRoundGrid(){
+  ROUNDS.forEach((r,i)=>{
+    const btn = document.createElement('button');
+    btn.className = 'round-btn';
+    btn.style.animationDelay = (i*0.03)+'s';
+    btn.innerHTML = '<span class="n">第'+numToKanji(r.id)+'回</span><span class="cnt">'+r.words.length+'語</span>';
+    btn.addEventListener('click',(e)=>{
+      spawnRipple(btn, e);
+      setTimeout(()=>openMode(r.id), 140);
+    });
+    roundGrid.appendChild(btn);
+  });
+}
+$('backToTitle').addEventListener('click', ()=> showScreen('title'));
+
+function spawnRipple(btn, e){
+  const rect = btn.getBoundingClientRect();
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  const size = Math.max(rect.width, rect.height);
+  r.style.width = r.style.height = size + 'px';
+  const x = (e.clientX ?? rect.left+rect.width/2) - rect.left - size/2;
+  const y = (e.clientY ?? rect.top+rect.height/2) - rect.top - size/2;
+  r.style.left = x + 'px';
+  r.style.top = y + 'px';
+  btn.appendChild(r);
+  setTimeout(()=>r.remove(), 600);
+}
+
+/* =====================================================================
+   MODE SELECT : 右→左 = テスト ／ 左→右 = 学習
+   ===================================================================== */
+const modeStage = $('modeStage');
+const modeCard = $('modeCard');
+const panelStudy = $('panelStudy');
+const panelTest = $('panelTest');
+let modeRound = null;
+let modeBusy = false;
+let drag = null;
+
+function openMode(id){
+  modeRound = ROUNDS.find(r=>r.id===id);
+  if(!modeRound) return;
+  $('mcRound').textContent = '第'+numToKanji(id)+'回';
+  $('mcMeta').textContent = modeRound.words.length+'語 ・ '+questionCount(modeRound)+'問';
+  resetMode();
+  showScreen('mode');
+}
+function resetMode(){
+  modeBusy = false;
+  drag = null;
+  modeStage.classList.remove('dragging','commit-study','commit-test');
+  modeCard.style.setProperty('--dx','0px');
+  modeCard.style.setProperty('--rot','0deg');
+  modeCard.style.opacity = '';
+  panelStudy.style.setProperty('--p',0);
+  panelTest.style.setProperty('--p',0);
+}
+function backToMode(){
+  clearTestTimers();
+  resetMode();
+  showScreen('mode');
+}
+$('backFromMode').addEventListener('click', ()=> showScreen('rounds'));
+
+function applyDrag(dx){
+  const W = modeStage.clientWidth;
+  const lim = W*0.44;
+  const d = lim * Math.tanh(dx/lim);          // ゴムのように重くなる
+  const th = W*0.2;
+  modeCard.style.setProperty('--dx', d+'px');
+  modeCard.style.setProperty('--rot', (d/lim*6)+'deg');
+  panelStudy.style.setProperty('--p', Math.min(1, Math.max(0, d/th)));
+  panelTest.style.setProperty('--p', Math.min(1, Math.max(0, -d/th)));
+}
+modeStage.addEventListener('pointerdown', (e)=>{
+  if(modeBusy) return;
+  if(e.target.closest('.hint-btn')) return;
+  drag = { id:e.pointerId, x0:e.clientX, dx:0, active:false, samples:[] };
+});
+modeStage.addEventListener('pointermove', (e)=>{
+  if(!drag || e.pointerId!==drag.id) return;
+  const dx = e.clientX - drag.x0;
+  if(!drag.active){
+    if(Math.abs(dx) < 8) return;
+    drag.active = true;
+    modeStage.classList.add('dragging');
+    try{ modeStage.setPointerCapture(e.pointerId); }catch(_){}
+  }
+  drag.dx = dx;
+  drag.samples.push({t:performance.now(), x:e.clientX});
+  if(drag.samples.length > 6) drag.samples.shift();
+  applyDrag(dx);
+});
+function endDrag(cancel){
+  if(!drag) return;
+  const d = drag; drag = null;
+  modeStage.classList.remove('dragging');
+  if(!d.active) return;
+  const W = modeStage.clientWidth;
+  const th = W*0.2;
+  let v = 0;
+  if(d.samples.length >= 2){
+    const a = d.samples[0], b = d.samples[d.samples.length-1];
+    v = (b.x-a.x)/Math.max(1, b.t-a.t);
+  }
+  if(!cancel && (d.dx < -th || (v < -0.7 && d.dx < -40))) commitMode('test');
+  else if(!cancel && (d.dx > th || (v > 0.7 && d.dx > 40))) commitMode('study');
+  else { modeCard.style.setProperty('--dx','0px'); modeCard.style.setProperty('--rot','0deg'); panelStudy.style.setProperty('--p',0); panelTest.style.setProperty('--p',0); }
+}
+modeStage.addEventListener('pointerup', ()=>endDrag(false));
+modeStage.addEventListener('pointercancel', ()=>endDrag(true));
+
+function commitMode(kind){
+  if(modeBusy || !modeRound) return;
+  modeBusy = true;
+  const W = modeStage.clientWidth;
+  const dir = (kind==='test') ? -1 : 1;
+  modeCard.style.setProperty('--dx', (dir*W*1.05)+'px');
+  modeCard.style.setProperty('--rot', (dir*14)+'deg');
+  modeCard.style.opacity = '0';
+  (kind==='test' ? panelTest : panelStudy).style.setProperty('--p', 1);
+  modeStage.classList.add(kind==='test' ? 'commit-test' : 'commit-study');
+  setTimeout(()=>{
+    if(kind==='test') startTest(modeRound.id);
+    else openStudy(modeRound.id);
+  }, 560);
+}
+$('hintStudy').addEventListener('click', ()=> commitMode('study'));
+$('hintTest').addEventListener('click', ()=> commitMode('test'));
+document.addEventListener('keydown', (e)=>{
+  if(isActive('mode') && !modeBusy){
+    if(e.key==='ArrowLeft') commitMode('test');       // 右→左 = テスト
+    else if(e.key==='ArrowRight') commitMode('study'); // 左→右 = 学習
+  }
+});
+
+/* =====================================================================
+   STUDY (学習)
+   ===================================================================== */
+const wordsContainer = $('wordsContainer');
+const progressLabel = $('progressLabel');
+const progressFill = $('progressFill');
+const listOverlay = $('listOverlay');
+const listGrid = $('listGrid');
+const listPanelTitle = $('listPanelTitle');
+$('backToRounds').addEventListener('click', ()=>{ closeList(); backToMode(); });
+
+let observer = null;
+let currentRoundData = null;
+let currentIndex = 0;
+
+function openStudy(id){
+  const round = ROUNDS.find(r=>r.id===id);
+  if(!round) return;
+  currentRoundData = round;
+  wordsContainer.innerHTML = '';
+
+  round.words.forEach((w,i)=>{
+    const page = document.createElement('section');
+    page.className = 'page';
+    page.dataset.index = i;
+
+    const headSpans = [...w.w].map((ch,ci)=>'<span class="ch" style="animation-delay:'+(ci*0.07)+'s">'+ch+'</span>').join('');
+
+    const items = w.senses.map((s,si)=>
+      '<div class="ex-item">'
+      + (w.senses.length>1 ? '<span class="ex-no">'+circled(si+1)+'</span>' : '')
+      + '<span class="ex-text">'+markHit(s.t)+'</span><br>'
+      + '<span class="ex-trans secret">'+s.tr+'</span>'
+      + (s.s ? '<br><span class="ex-src">'+s.s+'</span>' : '')
+      + '</div>'
+    ).join('');
+
+    page.innerHTML =
+      '<div class="tate-flow">'
+      + '<h2 class="tate-headword">'+headSpans+'</h2>'
+      + '<span class="tate-pos">'+w.pos+'</span>'
+      + '<p class="tate-meaning secret">'+w.mean+'</p>'
+      + '<div class="tate-block expl" style="animation-delay:.15s"><span class="tag">解説</span><br><span class="secret">'+w.expl+'</span></div>'
+      + '<div class="tate-block mne" style="animation-delay:.3s"><span class="tag">覚え方</span><br><span class="secret">'+w.mne+'</span></div>'
+      + '<div class="tate-block ex" style="animation-delay:.45s"><span class="tag">例文</span><br>'+items+'</div>'
+      + '</div>'
+      + '<div class="page-idx-mark">第'+numToKanji(round.id)+'回 ・ '+(i+1)+' / '+round.words.length+'</div>'
+      + (i < round.words.length-1 ? '<div class="scroll-cue">つぎへ ▽</div>' : '<div class="scroll-cue">これで おわり</div>');
+
+    wordsContainer.appendChild(page);
+  });
+
+  showScreen('words');
+  wordsContainer.scrollTop = 0;
+  currentIndex = 0;
+  updateProgress(round, 0);
+  setupObserver(round);
+  buildListGrid(round, 0);
+}
+
+/* 意味を隠す（赤シート）*/
+const toggleHide = $('toggleHide');
+toggleHide.addEventListener('click', ()=>{
+  const on = document.body.classList.toggle('hide-meaning');
+  toggleHide.classList.toggle('on', on);
+  toggleHide.setAttribute('aria-pressed', on ? 'true' : 'false');
+  toggleHide.textContent = on ? '意味を表示' : '意味を隠す';
+  document.querySelectorAll('.secret.shown').forEach(el=>el.classList.remove('shown'));
+});
+wordsContainer.addEventListener('click', (e)=>{
+  if(!document.body.classList.contains('hide-meaning')) return;
+  const el = e.target.closest('.secret');
+  if(el) el.classList.add('shown');
+});
+
+function jumpToWord(idx){
+  const pages = wordsContainer.querySelectorAll('.page');
+  if(pages[idx]){
+    pages[idx].scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  closeList();
+}
+
+function buildListGrid(round, activeIdx){
+  listPanelTitle.textContent = '第'+numToKanji(round.id)+'回 の 単語 一覧';
+  listGrid.innerHTML = '';
+  round.words.forEach((w,i)=>{
+    const chip = document.createElement('button');
+    chip.className = 'list-chip' + (i===activeIdx ? ' current' : '');
+    chip.dataset.idx = i;
+    chip.innerHTML =
+      '<span class="li-idx">'+String(i+1).padStart(2,'0')+'</span>'
+      + '<span class="li-word">'+w.w+'</span>'
+      + '<span class="li-mean">'+w.mean+'</span>';
+    chip.addEventListener('click', ()=> jumpToWord(i));
+    listGrid.appendChild(chip);
+  });
+}
+
+$('openList').addEventListener('click', ()=>{
+  if(!currentRoundData) return;
+  buildListGrid(currentRoundData, currentIndex);
+  listOverlay.classList.add('open');
+});
+$('closeList').addEventListener('click', closeList);
+listOverlay.addEventListener('click', (e)=>{
+  if(e.target === listOverlay) closeList();
+});
+function closeList(){
+  listOverlay.classList.remove('open');
+}
+
+function updateProgress(round, i){
+  currentIndex = i;
+  progressLabel.textContent = '第'+numToKanji(round.id)+'回 ・ '+(i+1)+' / '+round.words.length;
+  progressFill.style.height = (((i+1)/round.words.length)*100)+'%';
+}
+
+function setupObserver(round){
+  if(observer) observer.disconnect();
+  observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting && entry.intersectionRatio > 0.55){
+        entry.target.classList.add('active');
+        const idx = Number(entry.target.dataset.index);
+        updateProgress(round, idx);
+      } else {
+        entry.target.classList.remove('active');
+      }
+    });
+  }, { root: wordsContainer, threshold: [0, 0.55, 1] });
+
+  document.querySelectorAll('.page').forEach(p=>observer.observe(p));
+}
+
+/* =====================================================================
+   TEST (テスト)
+   ===================================================================== */
+const LABELS = ['ア','イ','ウ','エ'];
+
+/* --- distractor pool & similarity --- */
+function posGroup(pos){
+  if(pos.startsWith('名')) return 'n';
+  if(pos.includes('動')) return 'v';
+  if(pos.startsWith('形')) return 'a';
+  return 'o';
+}
+const POOL = [];
+ROUNDS.forEach(r=>r.words.forEach(w=>w.senses.forEach(s=>{
+  POOL.push({ word:w.w, m:s.m, g:posGroup(w.pos) });
+})));
+function tokensOf(m){
+  return m.replace(/[（）()～~]/g,'・').split(/[・／、\s]+/).map(x=>x.trim()).filter(x=>x.length>=2);
+}
+function squash(s){ return s.replace(/[（）()～~・／、\s「」]/g,''); }
+function similar(a,b){
+  const ta = tokensOf(a), tb = tokensOf(b);
+  if(ta.some(x=>tb.includes(x))) return true;
+  const na = squash(a), nb = squash(b);
+  for(let i=0;i+4<=na.length;i++){ if(nb.includes(na.substr(i,4))) return true; }
+  return false;
+}
+function makeOptions(q){
+  const correct = q.s.m;
+  const g = posGroup(q.w.pos);
+  const picked = [];
+  const tryAdd = (m)=>{
+    if(picked.length>=3) return;
+    if(similar(m, correct)) return;
+    if(picked.some(x=>similar(x, m))) return;
+    picked.push(m);
+  };
+  // 同じ語の別の意味を1つ混ぜる（意味の使い分けを問う）
+  const sib = shuffle(q.w.senses.filter((x,i)=> i!==q.si).map(x=>x.m));
+  if(sib.length && Math.random()<0.6) tryAdd(sib[0]);
+  const others = POOL.filter(p=>p.word!==q.w.w);
+  shuffle(others.filter(p=>p.g===g)).forEach(p=>tryAdd(p.m));
+  shuffle(others.filter(p=>p.g!==g)).forEach(p=>tryAdd(p.m));
+  return shuffle([{m:correct, ok:true}].concat(picked.map(m=>({m, ok:false}))));
+}
+function buildQuestions(round, onlyKeys){
+  let qs = [];
+  round.words.forEach(w=>w.senses.forEach((s,si)=>{
+    qs.push({ w, s, si, key:w.w+'#'+si });
+  }));
+  if(onlyKeys) qs = qs.filter(q=>onlyKeys.includes(q.key));
+  qs = shuffle(qs);
+  qs.forEach(q=>{ q.options = makeOptions(q); });
+  return qs;
+}
+
+
+/* 赤ペンで描く「◯」：少しずれて重なる手描き風の楕円 */
+function maruPath(W,H){
+  const cx = W/2, cy = H/2, rx = W/2 + 6, ry = H/2 + 6, n = 72;
+  const a0 = Math.PI*0.96;
+  let d = '';
+  for(let k=0;k<=n;k++){
+    const u = k/n;
+    const a = a0 + u*Math.PI*2.14;
+    const sc = 0.97 + 0.06*u;
+    const x = cx + Math.cos(a)*rx*sc;
+    const y = cy + Math.sin(a)*ry*sc - 4*Math.sin(u*Math.PI);
+    d += (k?'L':'M') + x.toFixed(1) + ' ' + y.toFixed(1) + ' ';
+  }
+  return d;
+}
+
+/* --- state --- */
+const T = { round:null, qs:[], i:0, correct:0, streak:0, best:0, wrong:[], locked:true, timers:[], review:false };
+function later(fn, ms){ const id = setTimeout(fn, ms); T.timers.push(id); return id; }
+function clearTestTimers(){ T.timers.forEach(clearTimeout); T.timers = []; }
+
+const qWrap = $('qWrap'), qNo = $('qNo'), qSentence = $('qSentence'), qChoices = $('qChoices'), qFeedback = $('qFeedback');
+const testIntro = $('testIntro'), testResult = $('testResult');
+
+function startTest(roundId, onlyKeys){
+  const round = ROUNDS.find(r=>r.id===roundId);
+  if(!round) return;
+  clearTestTimers();
+  T.round = round;
+  T.qs = buildQuestions(round, onlyKeys);
+  T.i = 0; T.correct = 0; T.streak = 0; T.best = 0; T.wrong = []; T.locked = true;
+  T.review = !!onlyKeys;
+
+  testResult.classList.remove('show');
+  $('testCorrect').textContent = '0';
+  $('testStreak').classList.remove('on');
+  $('testBarFill').style.width = '0%';
+  qFeedback.classList.remove('show'); qFeedback.innerHTML = '';
+  qChoices.innerHTML = ''; qSentence.innerHTML = '';
+  qNo.textContent = '';
+  $('testProgressLabel').textContent = '第'+numToKanji(round.id)+'回 ・ '+(T.review?'おさらい':'テスト');
+
+  // intro（画面が切り替わってから文字が並ぶ）
+  testIntro.classList.add('hide');
+  showScreen('test');
+  const title = '第'+numToKanji(round.id)+'回　'+(T.review?'おさらい':'力試し');
+  $('tiTitle').innerHTML = [...title].map((ch,i)=>'<span class="c" style="animation-delay:'+(0.4+i*0.09).toFixed(2)+'s">'+(ch==='　'?'&nbsp;&nbsp;':ch)+'</span>').join('');
+  $('tiSub').textContent = '全 '+T.qs.length+' 問';
+  void testIntro.offsetWidth;
+  testIntro.classList.remove('hide');
+
+  later(()=>{ testIntro.classList.add('hide'); renderQuestion(true); }, 3000);
+}
+
+function renderQuestion(first){
+  const q = T.qs[T.i];
+  const N = T.qs.length;
+  T.locked = true;
+  qFeedback.classList.remove('show'); qFeedback.innerHTML = '';
+  qWrap.classList.remove('leaving');
+  qWrap.classList.remove('entering'); void qWrap.offsetWidth; qWrap.classList.add('entering');
+
+  qNo.textContent = '問 '+(T.i+1)+' ／ '+N;
+  $('testProgressLabel').textContent = '第'+numToKanji(T.round.id)+'回 ・ '+(T.review?'おさらい':'テスト')+' ・ '+(T.i+1)+' / '+N;
+  $('testBarFill').style.width = ((T.i)/N*100)+'%';
+
+  // sentence (char-by-char reveal + underline sweep)
+  const m = q.s.t.match(/^([\s\S]*?)\[\[([\s\S]+?)\]\]([\s\S]*)$/);
+  const pre = m[1], hit = m[2], post = m[3];
+  const step = 0.028;
+  let n = 0;
+  const mk = (s)=>[...s].map(ch=>'<span class="c" style="animation-delay:'+((n++)*step).toFixed(3)+'s">'+ch+'</span>').join('');
+  const preH = mk(pre);
+  const hitH = mk(hit);
+  const postH = mk(post);
+  const ud = (n*step + 0.12).toFixed(2);
+  qSentence.innerHTML = preH + '<span class="q-hit" style="--ud:'+ud+'s">'+hitH+'</span>' + postH;
+
+  // choices
+  const base = n*step + 0.55;
+  qChoices.classList.remove('ready');
+  qChoices.innerHTML = q.options.map((o,i)=>
+    '<button class="choice" data-i="'+i+'" style="--cd:'+(base+i*0.09).toFixed(2)+'s">'
+    + '<span class="lab">'+LABELS[i]+'</span><span class="txt">'+o.m+'</span></button>'
+  ).join('');
+  qChoices.querySelectorAll('.choice').forEach(btn=>{
+    btn.addEventListener('click', ()=> answer(Number(btn.dataset.i)));
+  });
+  later(()=>{ qChoices.classList.add('ready'); T.locked = false; }, (base + 3*0.09 + 0.45)*1000);
+}
+
+function answer(i){
+  if(T.locked) return;
+  T.locked = true;
+  const q = T.qs[T.i];
+  const N = T.qs.length;
+  const chosen = q.options[i];
+  const ok = !!chosen.ok;
+  const btns = [...qChoices.querySelectorAll('.choice')];
+  const ci = q.options.findIndex(o=>o.ok);
+
+  btns.forEach((b,bi)=>{ b.classList.add('locked'); if(bi!==i && bi!==ci) b.classList.add('dim'); });
+
+  const addMaru = (b, delay)=>{
+    const W = b.offsetWidth, H = b.offsetHeight;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('class','mark maru');
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    svg.setAttribute('width', W); svg.setAttribute('height', H);
+    const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+    p.setAttribute('d', maruPath(W,H)); p.setAttribute('pathLength','1');
+    p.style.animationDelay = delay+'s';
+    svg.appendChild(p); b.appendChild(svg);
+  };
+  const addBatsu = (b)=>{
+    const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('class','mark batsu');
+    svg.setAttribute('viewBox','0 0 40 40');
+    ['M 6 6 L 34 34','M 34 6 L 6 34'].forEach(d=>{
+      const p = document.createElementNS('http://www.w3.org/2000/svg','path');
+      p.setAttribute('d', d); p.setAttribute('pathLength','1');
+      svg.appendChild(p);
+    });
+    b.appendChild(svg);
+  };
+
+  if(ok){
+    btns[i].classList.add('correct');
+    addMaru(btns[i], 0.05);
+    T.correct++; T.streak++; T.best = Math.max(T.best, T.streak);
+  } else {
+    btns[i].classList.add('wrong');
+    addBatsu(btns[i]);
+    later(()=>{ btns[ci].classList.add('correct'); btns[ci].classList.remove('dim'); addMaru(btns[ci], 0); }, 520);
+    T.streak = 0;
+    T.wrong.push({ key:q.key, w:q.w.w, m:q.s.m, tr:q.s.tr });
+  }
+
+  const cEl = $('testCorrect');
+  cEl.textContent = String(T.correct);
+  cEl.classList.remove('pop'); void cEl.offsetWidth; if(ok) cEl.classList.add('pop');
+  const sEl = $('testStreak');
+  if(T.streak >= 2){ sEl.textContent = '🔥 '+T.streak+' 連続'; sEl.classList.add('on'); }
+  else { sEl.classList.remove('on'); }
+  $('testBarFill').style.width = ((T.i+1)/N*100)+'%';
+
+  const last = (T.i+1 >= N);
+  const fbDelay = ok ? 450 : 900;
+  later(()=>{
+    qFeedback.innerHTML =
+      '<div class="fb-inner">'
+      + '<div class="fb-verdict '+(ok?'ok':'ng')+'">'+(ok?'正解！':'残念…')+'</div>'
+      + '<div class="fb-body">'
+      +   '<b>訳</b>　'+q.s.tr+'<br>'
+      +   '<span class="fb-w">'+q.w.w+'</span> ＝ '+q.w.mean+'<br>'
+      +   '<b>覚え方</b>　'+q.w.mne
+      + '</div>'
+      + '<button class="fb-next" id="fbNext">'+(last?'結果を見る':'つぎへ')+'<span class="ar">▷</span></button>'
+      + '</div>';
+    $('fbNext').addEventListener('click', nextQuestion);
+    requestAnimationFrame(()=> qFeedback.classList.add('show'));
+    later(()=>{
+      const st = $('testStage');
+      if(st.scrollHeight > st.clientHeight + 4) st.scrollTo({ top: st.scrollHeight, behavior:'smooth' });
+    }, 320);
+    T.locked = 'fb';
+  }, fbDelay);
+}
+
+function nextQuestion(){
+  if(T.locked !== 'fb') return;
+  T.locked = true;
+  if(T.i+1 >= T.qs.length){ showResult(); return; }
+  qWrap.classList.remove('entering');
+  qWrap.classList.add('leaving');
+  later(()=>{ T.i++; renderQuestion(); }, 380);
+}
+
+document.addEventListener('keydown', (e)=>{
+  if(!isActive('test')) return;
+  if(testResult.classList.contains('show')) return;
+  if(['1','2','3','4'].includes(e.key) && T.locked===false){ answer(Number(e.key)-1); }
+  else if((e.key==='Enter' || e.key===' ' || e.key==='ArrowRight') && T.locked==='fb'){ e.preventDefault(); nextQuestion(); }
+});
+
+/* --- result --- */
+function showResult(){
+  const N = T.qs.length;
+  const pct = Math.round(T.correct / N * 100);
+  $('rsOf').textContent = '／ '+N+' 問';
+  $('rsKicker').textContent = '第'+numToKanji(T.round.id)+'回　'+(T.review?'おさらい':'テスト')+' 結果';
+  let comment = '';
+  if(pct===100) comment = '全問正解！お見事です。';
+  else if(pct>=90) comment = 'ほぼ完璧。あと一歩！';
+  else if(pct>=70) comment = 'いい調子。もう一息です。';
+  else if(pct>=50) comment = '半分は越えました。復習しましょう。';
+  else comment = 'まずは学習でおさらいしよう。';
+  $('rsComment').textContent = comment;
+  $('rsPct').textContent = '正答率 '+pct+' ％　／　最高連続正解 '+T.best;
+
+  const wrongBox = $('rsWrongBox'), wrongEl = $('rsWrong');
+  wrongEl.innerHTML = '';
+  if(T.wrong.length){
+    wrongBox.style.display = '';
+    T.wrong.forEach((x,k)=>{
+      const row = document.createElement('div');
+      row.className = 'wi'; row.style.setProperty('--wd', (0.9+k*0.07).toFixed(2)+'s');
+      row.innerHTML = '<b>'+x.w+'</b><span>'+x.m+'</span>';
+      wrongEl.appendChild(row);
+    });
+    $('rsRetryWrong').style.display = '';
+  } else {
+    wrongBox.style.display = 'none';
+    $('rsRetryWrong').style.display = 'none';
+  }
+
+  $('rsNum').textContent = '0';
+  const fg = $('rsFg');
+  fg.style.transition = 'none'; fg.style.strokeDashoffset = '1'; void fg.getBoundingClientRect(); fg.style.transition = '';
+  testResult.classList.add('show');
+  requestAnimationFrame(()=>{ fg.style.strokeDashoffset = String(1 - T.correct/N); });
+
+  // count-up
+  const t0 = performance.now(), dur = 1300, target = T.correct;
+  (function tick(now){
+    const p = Math.min(1, (now - t0 - 350)/dur);
+    if(p > 0) $('rsNum').textContent = String(Math.round(target * (1 - Math.pow(1-p,3))));
+    if(p < 1) requestAnimationFrame(tick); else $('rsNum').textContent = String(target);
+  })(performance.now());
+
+  if(pct >= 90) burstPetals();
+}
+function burstPetals(){
+  for(let i=0;i<30;i++){
+    const p = document.createElement('div');
+    p.className = 'petal';
+    p.style.left = (Math.random()*100)+'%';
+    p.style.animationDuration = (3.2+Math.random()*2.6)+'s';
+    p.style.animationDelay = (0.4+Math.random()*1.4)+'s';
+    p.style.setProperty('--dr', (Math.random()*160-80)+'px');
+    p.style.width = p.style.height = (9+Math.random()*10)+'px';
+    testResult.appendChild(p);
+    setTimeout(()=>p.remove(), 8000);
+  }
+}
+
+$('rsRetryAll').addEventListener('click', ()=> startTest(T.round.id));
+$('rsRetryWrong').addEventListener('click', ()=> startTest(T.round.id, T.wrong.map(x=>x.key)));
+$('rsToStudy').addEventListener('click', ()=>{ testResult.classList.remove('show'); openStudy(T.round.id); });
+$('rsToRounds').addEventListener('click', ()=>{ testResult.classList.remove('show'); clearTestTimers(); showScreen('rounds'); });
+$('backFromTest').addEventListener('click', ()=>{ testResult.classList.remove('show'); backToMode(); });
+
+/* ---------- init ---------- */
+// 画面外のはみ出しで外枠が勝手にスクロールしないように固定
+const appEl = $('app');
+appEl.addEventListener('scroll', ()=>{ if(appEl.scrollTop || appEl.scrollLeft) appEl.scrollTo(0,0); });
+buildRoundGrid();
+</script>
+</body>
+</html>
