@@ -899,6 +899,71 @@
 <div id="app">
 
   <!-- TITLE SCREEN -->
+   <!-- ダイアログの定義 -->
+<dialog id="notice-dialog">
+  <div class="dialog-content">
+    <h2>警告</h2>
+    <p>古文単語テストを甘く見ると落ちます</br>ちゃんと対策をしましょう</p>
+   <p class="sepizi">
+    このサイトを使ってるのに落ちて欲しくないので落ちないように勉強してください<br>2026/10/23
+   </p>
+    
+    <!-- 消える仕掛け（form method="dialog" を使うとJavaScriptなしで閉じられます） -->
+    <form method="dialog">
+      <button class="close-btn">閉じる</button>
+    </form>
+  </div>
+</dialog>
+
+<!-- スタイル（真ん中配置と見た目の調整） -->
+<style>
+  /* 
+    <dialog>は showModal() で開くと、
+    ブラウザの標準機能で「自動的に画面の真ん中」かつ「一番上のレイヤー」に配置されます。
+    以下は、さらに見た目を綺麗に整えるためのデザインCSSです。
+  */
+  dialog {
+    border: none;
+    border-radius: 8px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 400px;
+    width: 90%;
+  }
+
+  /* 背景（暗幕）のスタイルも一番上のレイヤーに適用されます */
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .dialog-content {
+    text-align: center;
+  }
+
+  .close-btn {
+    margin-top: 16px;
+    padding: 8px 24px;
+    background-color: #a3392a;
+    color: #e3ecdd;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .sepizi{
+    color:#33506e;
+    font-size:5px;
+  }
+</style>
+
+<!-- 最初から最前面（モーダル）で開くためのJavaScript -->
+<script>
+  // ページが読み込まれたら、自動的に一番上のレイヤーで真ん中に開く
+  window.addEventListener('DOMContentLoaded', () => {
+    const dialog = document.getElementById('notice-dialog');
+    dialog.showModal(); 
+  });
+</script>
+
   <section id="screen-title" class="screen active">
     <div class="title-stage">
       <div class="title-frame">
